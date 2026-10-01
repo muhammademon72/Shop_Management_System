@@ -21,15 +21,12 @@ import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { StatusBadge } from "@/components/status-badge"
 import { PageHeader } from "@/components/page-header"
-import type { Product, Category, Brand, Uom } from "@/lib/types"
+import type { Product, Category, Uom } from "@/lib/types"
 
 const empty = (): Partial<Product> => ({
   name: "",
   categoryId: null,
-  brandId: null,
   uomId: null,
-  model: "",
-  serial: "",
   status: "Active",
 })
 
@@ -54,15 +51,6 @@ export function ProductsModule() {
     queryKey: ["categories"],
     queryFn: async () => {
       const res = await fetch("/api/categories")
-      if (!res.ok) throw new Error("Failed")
-      return res.json()
-    },
-  })
-
-  const { data: brands } = useQuery<Brand[]>({
-    queryKey: ["brands"],
-    queryFn: async () => {
-      const res = await fetch("/api/brands")
       if (!res.ok) throw new Error("Failed")
       return res.json()
     },
@@ -117,11 +105,7 @@ export function ProductsModule() {
     const list = data ?? []
     const s = search.toLowerCase()
     return list.filter((p) => {
-      const matchSearch =
-        !s ||
-        p.name.toLowerCase().includes(s) ||
-        (p.model ?? "").toLowerCase().includes(s) ||
-        (p.serial ?? "").toLowerCase().includes(s)
+      const matchSearch = !s || p.name.toLowerCase().includes(s)
       const matchStatus =
         statusFilter === "all" || p.status === statusFilter
       return matchSearch && matchStatus
@@ -148,27 +132,13 @@ export function ProductsModule() {
   const columns: Column<Product>[] = [
     {
       key: "name",
-      header: "Product Name",
-      cell: (row) => (
-        <div className="flex flex-col">
-          <span className="font-medium">{row.name}</span>
-          {row.model && (
-            <span className="text-muted-foreground text-xs">
-              Model: {row.model}
-            </span>
-          )}
-        </div>
-      ),
+      header: "Product",
+      cell: (row) => <span className="font-medium">{row.name}</span>,
     },
     {
       key: "category",
       header: "Category",
       cell: (row) => row.category?.name ?? "—",
-    },
-    {
-      key: "brand",
-      header: "Brand",
-      cell: (row) => row.brand?.name ?? "—",
     },
     {
       key: "uom",
@@ -277,27 +247,6 @@ export function ProductsModule() {
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label>Brand</Label>
-            <Select
-              value={editing?.brandId ?? "none"}
-              onValueChange={(v) =>
-                setEditing({ ...editing!, brandId: v === "none" ? null : v })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select brand" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">— None —</SelectItem>
-                {(brands ?? []).map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
             <Label>UOM</Label>
             <Select
               value={editing?.uomId ?? "none"}
@@ -317,22 +266,6 @@ export function ProductsModule() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Model</Label>
-            <Input
-              value={editing?.model ?? ""}
-              onChange={(e) => setEditing({ ...editing!, model: e.target.value })}
-              placeholder="e.g. UA55TU8000"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label>Serial</Label>
-            <Input
-              value={editing?.serial ?? ""}
-              onChange={(e) => setEditing({ ...editing!, serial: e.target.value })}
-              placeholder="Serial number"
-            />
           </div>
         </div>
         <div className="flex items-center justify-between rounded-md border p-3">

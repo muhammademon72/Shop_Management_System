@@ -106,3 +106,26 @@ Stage Summary:
 - TanStack Query + Sonner toasts wired in layout; Zustand store drives single-route navigation.
 - Seed script runs and produces non-empty dashboard; lint clean.
 - Verified end-to-end via Agent Browser — Dashboard KPIs, list views, create dialog, master/detail purchase form all work.
+
+---
+Task ID: SMS-PATCH-14
+Agent: main
+Task: Remove Brand, Model, Serial from Add Product form (re-applied — earlier change had been reverted)
+
+Work Log:
+- Re-applied the SMS-PATCH-1 changes to `src/components/modules/products.tsx` (the file had been reset to its pre-patch state):
+  - Removed `brandId`, `model`, `serial` from `empty()` initial state.
+  - Removed the `brands` useQuery (no longer needed in this module).
+  - Removed `Brand` from the type imports (now `import type { Product, Category, Uom }`).
+  - Simplified the search filter to only match `name` (no longer matches model/serial).
+  - Removed the Brand column from the Product List table — now shows: Product / Category / UOM / Status / Actions.
+  - Removed the Model subtitle from the Product cell (just shows the product name now).
+  - Removed the Brand Select, Model Input, and Serial Input fields from the Add/Edit Product form — now shows only Product Name, Category, UOM, Status.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser):
+- Navigated via sidebar to Product List — heading "Products", columns: Product / Category / UOM / Status / Actions (no Brand column). ✓
+- Opened Add Product dialog — only Product Name / Category / UOM / Status fields visible (no Brand / Model / Serial inputs). ✓
+- No leftover Brand/model/serial references in the file (grep confirmed). ✓
+
+Note: While testing, I noticed that `src/lib/store.ts` had ALSO been reset to its pre-SMS-PATCH-8 state (URL-based module navigation via `useActiveModule` is gone, so `?module=products` no longer loads the Products module directly — only the sidebar click works). Since the user's current instruction was specifically about Brand/Model/Serial removal, I did NOT touch `store.ts` or any other file. The URL-based module navigation is a separate concern and would need explicit user permission to restore.
