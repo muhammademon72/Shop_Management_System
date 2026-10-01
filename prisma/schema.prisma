@@ -1,0 +1,219 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ===== Product Manage =====
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  type      String   // e.g. "Goods", "Service"
+  status    String   @default("Active") // "Active" | "Inactive"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  products  Product[]
+}
+
+model Brand {
+  id        String   @id @default(cuid())
+  name      String
+  status    String   @default("Active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  products  Product[]
+}
+
+model Uom {
+  id        String   @id @default(cuid())
+  name      String   // e.g. "PCS", "KG", "LITER"
+  status    String   @default("Active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  products  Product[]
+}
+
+model Product {
+  id         String    @id @default(cuid())
+  name       String
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  brandId     String?
+  brand       Brand?   @relation(fields: [brandId], references: [id])
+  uomId       String?
+  uom         Uom?     @relation(fields: [uomId], references: [id])
+  model       String?
+  serial      String?
+  status      String   @default("Active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  purchaseItems  PurchaseItem[]
+  inventoryStocks InventoryStock[]
+  quotationItems  QuotationItem[]
+  sellItems       SellItem[]
+}
+
+// ===== Purchase Manage =====
+model Supplier {
+  id        String    @id @default(cuid())
+  name      String
+  mobile    String
+  address   String?
+  status    String    @default("Active")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  purchases Purchase[]
+}
+
+model Purchase {
+  id          String   @id @default(cuid())
+  purchaseDate DateTime @default(now())
+  supplierId   String?
+  supplier     Supplier? @relation(fields: [supplierId], references: [id])
+  invoiceNo    String
+  totalPrice   Float    @default(0)
+  discount     Float    @default(0)
+  grandTotal   Float    @default(0)
+  attachment   String?
+  remarks      String?
+  items        PurchaseItem[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model PurchaseItem {
+  id            String     @id @default(cuid())
+  purchaseId    String
+  purchase      Purchase   @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productId     String?
+  product       Product?   @relation(fields: [productId], references: [id])
+  category      String?
+  brand         String?
+  model         String?
+  serial        String?
+  qty           Float      @default(0)
+  price         Float      @default(0)
+  total         Float      @default(0)
+  condition     String?
+  warrantyDate  DateTime?
+  warrantyDays  Int?
+  remarks       String?
+}
+
+model InventoryStock {
+  id        String   @id @default(cuid())
+  date      DateTime @default(now())
+  invoice   String
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+  brand     String?
+  model     String?
+  serial    String?
+  qty       Float    @default(0)
+  uom       String?
+  remarks   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ===== Sell Manage =====
+model Customer {
+  id        String    @id @default(cuid())
+  name      String
+  mobile    String
+  address   String?
+  status    String    @default("Active")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  quotations Quotation[]
+  sells      Sell[]
+}
+
+model Quotation {
+  id            String   @id @default(cuid())
+  quotationDate DateTime @default(now())
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id])
+  invoiceNo     String
+  totalPrice    Float    @default(0)
+  discount      Float    @default(0)
+  grandTotal    Float    @default(0)
+  remarks       String?
+  items         QuotationItem[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model QuotationItem {
+  id          String    @id @default(cuid())
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product?  @relation(fields: [productId], references: [id])
+  qty         Float     @default(0)
+  price       Float     @default(0)
+  total       Float     @default(0)
+  remarks     String?
+}
+
+model Sell {
+  id         String   @id @default(cuid())
+  sellDate   DateTime @default(now())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  invoiceNo  String
+  totalPrice Float   @default(0)
+  discount   Float   @default(0)
+  grandTotal Float   @default(0)
+  paidAmount Float   @default(0)
+  dueAmount  Float   @default(0)
+  remarks    String?
+  items      SellItem[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model SellItem {
+  id        String   @id @default(cuid())
+  sellId    String
+  sell      Sell     @relation(fields: [sellId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+  qty       Float   @default(0)
+  price     Float   @default(0)
+  total     Float   @default(0)
+  remarks   String?
+}
+
+// ===== Settings =====
+model CompanyProfile {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  phone     String?
+  email     String?
+  website   String?
+  vatNo     String?
+  logo      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppUser {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  mobile    String?
+  role      String   @default("Staff") // "Admin" | "Staff" | "Manager"
+  status    String   @default("Active")
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
