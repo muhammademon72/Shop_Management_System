@@ -555,3 +555,41 @@ Verification (Direct Prisma script):
 Stage Summary:
 - **Issue 1 fixed**: Deleting a purchase from the Purchase List now automatically deletes all linked Inventory Stock rows (via the new `purchaseId` cascade-delete relation).
 - **Issue 2 fixed**: The New Purchase form's line item Remarks are now properly copied to the Inventory Stock's Remarks field (instead of the hardcoded "From purchase XXX" text).
+
+---
+Task ID: SMS-PATCH-29
+Agent: main
+Task: Create New Quotation form with 8-column line items (Product Name, Brand, Model, Serial, Condition, Warranty, Price, Total)
+
+Work Log:
+- **Schema change** (`prisma/schema.prisma`): Updated `QuotationItem` model — removed `qty` field, added `brand`, `model`, `serial`, `condition`, `warrantyText` fields (all `String?`). The line items table no longer has a Qty column (per user's column spec: Product Name, Brand, Model, Serial, Condition, Warranty, Price, Total). Total = Price (1 item per row).
+- Ran `bun run db:push` to apply the schema change.
+- **Types** (`types.ts`): Updated `QuotationItem` interface — removed `qty`, added `brand`, `model`, `serial`, `condition`, `warrantyText`.
+- **API route** (`/api/quotations/route.ts`): Updated POST and PUT handlers to accept the new fields (brand, model, serial, condition, warrantyText). Removed `qty` from the item creation.
+- **Module component** (`quotations.tsx`): Complete rewrite following the New Purchase form pattern:
+  - **Header section**: 2-column HTML table — Quotation Date / Customer Name (SearchableSelect) / Customer Address (auto-fill) | Invoice Number / Discount Amount / Note
+  - **Line items table**: 8 columns + Actions, with light-blue (#9DC3E6) header:
+    1. Product Name (SearchableSelect with search + category hint)
+    2. Brand (SearchableSelect with search)
+    3. Model (Input)
+    4. Serial (Input)
+    5. Condition (Select loaded from /api/conditions)
+    6. Warranty (Select loaded from /api/warranties)
+    7. Price (number Input)
+    8. Total (auto-calculated = Price)
+    9. Actions (X delete button)
+  - **Footer**: Total Amount row (spans 7 cols + value in black-bordered cell + Add Row button)
+  - **Footer buttons**: Status dropdown (Draft/Confirmed) on left + Cancel + Save Quotation on right (same as New Purchase form)
+  - **FormDialog**: `size="full"` + `hideFooter` + custom footer with Status dropdown
+  - **View dialog**: Same format as the form but read-only — header grid + 8-column table + Total Amount footer
+- Added queries for brands, conditions, warranties (same as Purchase form).
+- Imported SearchableSelect and used it for Product Name and Brand Name dropdowns (searchable).
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser + VLM):
+- Opened New Quotation dialog → all 9 column headers visible in correct order: Product Name / Brand / Model / Serial / Condition / Warranty / Price / Total / Actions. ✓
+- VLM described the form: "Light blue/teal header for the table, dashed borders for the top info section, full columns visible." ✓
+- VLM confirmed the format matches the New Purchase form pattern. ✓
+
+Stage Summary:
+- The New Quotation form now has the same format as the New Purchase form: header section (Quotation Date/Customer Name/Customer Address | Invoice Number/Discount Amount/Note), line items table with 8 columns (Product Name, Brand, Model, Serial, Condition, Warranty, Price, Total) + Actions, Total Amount footer, Status dropdown in the footer. Product Name and Brand Name are searchable dropdowns. Condition and Warranty load from their respective lists.

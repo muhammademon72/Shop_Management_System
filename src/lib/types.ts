@@ -133,7 +133,11 @@ export interface QuotationItem {
   quotationId?: string
   productId: string | null
   product?: Product | null
-  qty: number
+  brand: string | null
+  model: string | null
+  serial: string | null
+  condition: string | null
+  warrantyText: string | null
   price: number
   total: number
   remarks: string | null

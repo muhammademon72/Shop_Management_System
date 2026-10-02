@@ -38,7 +38,11 @@ export async function POST(req: Request) {
         items: {
           create: items.map((it: Record<string, unknown>) => ({
             productId: it.productId ? String(it.productId) : null,
-            qty: Number(it.qty ?? 0),
+            brand: it.brand ? String(it.brand) : null,
+            model: it.model ? String(it.model) : null,
+            serial: it.serial ? String(it.serial) : null,
+            condition: it.condition ? String(it.condition) : null,
+            warrantyText: it.warrantyText ? String(it.warrantyText) : null,
             price: Number(it.price ?? 0),
             total: Number(it.total ?? 0),
             remarks: it.remarks ? String(it.remarks) : null,
@@ -89,7 +93,11 @@ export async function PUT(req: Request) {
           items: {
             create: items.map((it: Record<string, unknown>) => ({
               productId: it.productId ? String(it.productId) : null,
-              qty: Number(it.qty ?? 0),
+              brand: it.brand ? String(it.brand) : null,
+              model: it.model ? String(it.model) : null,
+              serial: it.serial ? String(it.serial) : null,
+              condition: it.condition ? String(it.condition) : null,
+              warrantyText: it.warrantyText ? String(it.warrantyText) : null,
               price: Number(it.price ?? 0),
               total: Number(it.total ?? 0),
               remarks: it.remarks ? String(it.remarks) : null,

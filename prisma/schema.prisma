@@ -172,15 +172,19 @@ model Quotation {
 }
 
 model QuotationItem {
-  id          String    @id @default(cuid())
-  quotationId String
-  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
-  productId   String?
-  product     Product?  @relation(fields: [productId], references: [id])
-  qty         Float     @default(0)
-  price       Float     @default(0)
-  total       Float     @default(0)
-  remarks     String?
+  id           String    @id @default(cuid())
+  quotationId  String
+  quotation    Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  productId    String?
+  product      Product?  @relation(fields: [productId], references: [id])
+  brand        String?
+  model        String?
+  serial       String?
+  condition    String?
+  warrantyText String?
+  price        Float     @default(0)
+  total        Float     @default(0)
+  remarks      String?
 }
 
 model Sell {
