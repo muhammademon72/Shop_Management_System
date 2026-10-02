@@ -25,7 +25,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { DataTable, type Column } from "@/components/data-table"
 import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PageHeader } from "@/components/page-header"
@@ -272,85 +271,34 @@ export function PurchasesModule() {
     })
   }
 
-  const columns: Column<Purchase>[] = [
-    {
-      key: "purchaseDate",
-      header: "Purchase Date",
-      cell: (row) => (
-        <span className="text-muted-foreground">
-          {formatDate(row.purchaseDate)}
-        </span>
-      ),
-    },
-    {
-      key: "supplier",
-      header: "Supplier",
-      cell: (row) => row.supplier?.name ?? "—",
-    },
-    {
-      key: "invoiceNo",
-      header: "Invoice No",
-      cell: (row) => <span className="font-medium">{row.invoiceNo}</span>,
-    },
-    {
-      key: "totalPrice",
-      header: "Total Price",
-      cell: (row) => formatCurrency(row.totalPrice),
-    },
-    {
-      key: "discount",
-      header: "Discount",
-      cell: (row) => formatCurrency(row.discount),
-    },
-    {
-      key: "grandTotal",
-      header: "Grand Total",
-      cell: (row) => (
-        <span className="font-semibold">{formatCurrency(row.grandTotal)}</span>
-      ),
-    },
-    {
-      key: "attachment",
-      header: "Attachment",
-      cell: (row) =>
-        row.attachment ? (
-          <Badge variant="secondary" className="gap-1">
-            <Paperclip className="h-3 w-3" />
-            {row.attachment.split("/").pop()}
-          </Badge>
-        ) : (
-          <span className="text-muted-foreground">—</span>
-        ),
-    },
-    {
-      key: "actions",
-      header: "Actions",
-      cell: (row) => (
-        <div className="flex items-center gap-1">
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setViewing(row)}
-            title="View"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button size="icon" variant="ghost" onClick={() => handleEdit(row)} title="Edit">
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setDeletingId(row.id)}
-            title="Delete"
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ]
+  // === Image-matching Purchase List table ===
+  // Format matches the user-uploaded reference photo:
+  //  - Teal header with white text, dashed cell borders
+  //  - Purchase id | Purchase Date | Supplier Name | Invoice Number |
+  //    Total Amount | Attach Invoice | Actions
+  //  - Date in DD-MM-YYYY format
+  //  - Footer "Total Amount" row showing the sum of all grandTotals
+  const fmtDMY = (iso: string) => {
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return "—"
+    const dd = String(d.getDate()).padStart(2, "0")
+    const mm = String(d.getMonth() + 1).padStart(2, "0")
+    const yyyy = d.getFullYear()
+    return `${dd}-${mm}-${yyyy}`
+  }
+  const fmtPurchaseId = (row: Purchase) => {
+    // Use the last 6 chars of the cuid (uppercased) prefixed with "Pur-".
+    // Matches the image's "Pur-260001" sequential-looking style.
+    const tail = row.id.replace(/[^a-zA-Z0-9]/g, "").slice(-6).toUpperCase()
+    return `Pur-${tail}`
+  }
+  const fmtAmount = (n: number) =>
+    new Intl.NumberFormat("en-US").format(Number(n) || 0)
+
+  const totalAmountSum = (rows ?? []).reduce(
+    (s, r) => s + (Number(r.grandTotal) || 0),
+    0
+  )
 
   return (
     <div className="flex flex-col gap-4">
@@ -364,16 +312,156 @@ export function PurchasesModule() {
         }
       />
 
-      <DataTable
-        columns={columns}
-        rows={rows}
-        rowKey={(r) => r.id}
-        loading={isLoading}
-        search
-        searchText={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search purchases..."
-      />
+      {/* Search box (kept above the custom table) */}
+      <div className="flex items-center gap-2">
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search purchases..."
+          className="max-w-sm"
+        />
+      </div>
+
+      {/* Custom Purchase List table — matches the user-uploaded photo */}
+      <div className="overflow-x-auto rounded-md border border-gray-300 bg-white">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr
+              className="text-white"
+              style={{
+                background:
+                  "linear-gradient(to bottom, #4DB6AC, #80CBC4)",
+              }}
+            >
+              {[
+                "Purchase id",
+                "Purchase Date",
+                "Supplier Name",
+                "Invoice Number",
+                "Total Amount",
+                "Attach Invoice",
+                "Actions",
+              ].map((h) => (
+                <th
+                  key={h}
+                  className="border border-white/60 px-3 py-2 text-center font-bold"
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="border border-dashed border-gray-300 px-3 py-6 text-center text-muted-foreground"
+                >
+                  Loading…
+                </td>
+              </tr>
+            ) : rows.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="border border-dashed border-gray-300 px-3 py-6 text-center text-muted-foreground"
+                >
+                  No purchases found.
+                </td>
+              </tr>
+            ) : (
+              rows.map((row) => (
+                <tr key={row.id} className="bg-white">
+                  <td className="border border-dashed border-gray-300 px-3 py-2 font-medium">
+                    {fmtPurchaseId(row)}
+                  </td>
+                  <td className="border border-dashed border-gray-300 px-3 py-2 text-center">
+                    {fmtDMY(row.purchaseDate)}
+                  </td>
+                  <td className="border border-dashed border-gray-300 px-3 py-2">
+                    {row.supplier?.name ?? "—"}
+                  </td>
+                  <td className="border border-dashed border-gray-300 px-3 py-2">
+                    {row.invoiceNo}
+                  </td>
+                  <td className="border border-dashed border-gray-300 px-3 py-2 text-right font-medium">
+                    {fmtAmount(row.grandTotal)}
+                  </td>
+                  <td className="border border-dashed border-gray-300 px-3 py-2 text-center">
+                    {row.attachment ? (
+                      <a
+                        href={row.attachment}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={row.attachment.split("/").pop()}
+                        className="text-[#0066cc] hover:underline"
+                        title={`Open / download ${row.attachment.split("/").pop()}`}
+                      >
+                        Attach Invoice
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(row)}
+                        className="text-[#0066cc] hover:underline"
+                        title="Edit to attach an invoice"
+                      >
+                        Attach Invoice
+                      </button>
+                    )}
+                  </td>
+                  <td className="border border-dashed border-gray-300 px-3 py-2 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setViewing(row)}
+                      className="text-[#0066cc] hover:underline"
+                    >
+                      View
+                    </button>
+                    ,{" "}
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(row)}
+                      className="text-[#0066cc] hover:underline"
+                    >
+                      Edit
+                    </button>
+                    ,{" "}
+                    <button
+                      type="button"
+                      onClick={() => setDeletingId(row.id)}
+                      className="text-[#0066cc] hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+          {/* Footer — Total Amount row */}
+          {rows.length > 0 && (
+            <tfoot>
+              <tr className="bg-gray-50">
+                <td
+                  colSpan={4}
+                  className="border border-dashed border-gray-300 px-3 py-2 text-right font-bold"
+                >
+                  Total Amount
+                </td>
+                <td className="border-2 border-black px-3 py-2 text-right font-bold">
+                  {fmtAmount(totalAmountSum)}
+                </td>
+                <td
+                  colSpan={2}
+                  className="border border-dashed border-gray-300 px-3 py-2"
+                />
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
 
       {/* Edit/Create form dialog */}
       <FormDialog

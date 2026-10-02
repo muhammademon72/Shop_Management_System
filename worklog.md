@@ -129,3 +129,45 @@ Verification (Agent Browser):
 - No leftover Brand/model/serial references in the file (grep confirmed). ✓
 
 Note: While testing, I noticed that `src/lib/store.ts` had ALSO been reset to its pre-SMS-PATCH-8 state (URL-based module navigation via `useActiveModule` is gone, so `?module=products` no longer loads the Products module directly — only the sidebar click works). Since the user's current instruction was specifically about Brand/Model/Serial removal, I did NOT touch `store.ts` or any other file. The URL-based module navigation is a separate concern and would need explicit user permission to restore.
+
+---
+Task ID: SMS-PATCH-15
+Agent: main
+Task: Format the Purchases List home page to match the user-uploaded reference photo
+
+Work Log:
+- Replaced the generic `DataTable` usage in `src/components/modules/purchases.tsx` with a custom inline table that matches the user's uploaded reference photo exactly.
+- Added helper functions inline in the module:
+  - `fmtDMY(iso)` — formats ISO date as DD-MM-YYYY (matches the image's date format).
+  - `fmtPurchaseId(row)` — formats the purchase cuid as "Pur-{last6chars uppercased}" to match the image's "Pur-260001" style sequential-looking ID.
+  - `fmtAmount(n)` — formats a number with thousands separators and NO currency symbol (matches the image's plain "42500" style).
+- Built the table with the image's exact 7 columns:
+  - Purchase id | Purchase Date | Supplier Name | Invoice Number | Total Amount | Attach Invoice | Actions
+- Header styling:
+  - Teal/cyan gradient background (`linear-gradient(to bottom, #4DB6AC, #80CBC4)`).
+  - White text, bold, center-aligned, with thin white border between header cells.
+- Body rows:
+  - White background.
+  - Dashed gray borders between cells (`border border-dashed border-gray-300`) — matches the image's dashed/dotted grid lines.
+- "Attach Invoice" column:
+  - If an attachment URL exists → blue hyperlink "Attach Invoice" (color `#0066cc`) that opens/downloads the file in a new tab.
+  - If no attachment → blue "Attach Invoice" button that opens the Edit dialog (so the user can attach an invoice).
+- "Actions" column:
+  - Blue text links "View, Edit, Delete" (comma-separated, color `#0066cc`) — matches the image's action-link style instead of icon buttons.
+- Footer row:
+  - "Total Amount" label spans 4 cells (right-aligned, bold).
+  - The actual sum (e.g. "9,200") in a 5th cell with a thick black border to emphasize it.
+  - Last 2 cells empty with dashed borders.
+- Removed unused `DataTable`/`Column` imports.
+- Kept the existing search box functionality (now sits above the custom table).
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser + VLM):
+- All 7 column headers visible in the correct order: Purchase id / Purchase Date / Supplier Name / Invoice Number / Total Amount / Attach Invoice / Actions. ✓
+- VLM described the header background as "teal/cyan" (light turquoise/teal). ✓
+- VLM confirmed the "Total Amount" row at the bottom showing the sum (9,200) in a distinct box. ✓
+- VLM confirmed "Attach Invoice" and "View, Edit, Delete" are displayed as blue hyperlinks. ✓
+- VLM zoomed-in check confirmed the horizontal row separators are DASHED/DOTTED (matches the image's dashed grid lines), while the outer table perimeter is solid. ✓
+
+Stage Summary:
+- The Purchases List home page is now formatted to match the user-uploaded reference photo. The table has the exact 7 columns (Purchase id / Purchase Date / Supplier Name / Invoice Number / Total Amount / Attach Invoice / Actions), teal/cyan header, dashed cell borders, blue hyperlink action links, and a footer "Total Amount" row showing the sum of all grand totals.
