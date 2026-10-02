@@ -38,12 +38,10 @@ interface ItemRow {
   brand: string
   model: string
   serial: string
+  warranty: string
   qty: string
   price: string
   total: number
-  condition: string
-  warrantyDate: string
-  warrantyDays: string
   remarks: string
 }
 
@@ -53,7 +51,9 @@ interface PurchaseForm {
   supplierId: string | null
   invoiceNo: string
   attachment: string
+  discount: string
   remarks: string
+  status: "Draft" | "Confirmed"
   items: ItemRow[]
 }
 
@@ -63,12 +63,10 @@ const newItem = (): ItemRow => ({
   brand: "",
   model: "",
   serial: "",
+  warranty: "",
   qty: "1",
   price: "0",
   total: 0,
-  condition: "New",
-  warrantyDate: "",
-  warrantyDays: "",
   remarks: "",
 })
 
@@ -77,7 +75,9 @@ const emptyForm = (): PurchaseForm => ({
   supplierId: null,
   invoiceNo: `PUR-${Date.now().toString().slice(-6)}`,
   attachment: "",
+  discount: "0",
   remarks: "",
+  status: "Draft",
   items: [newItem()],
 })
 
@@ -129,13 +129,17 @@ export function PurchasesModule() {
           qty: Number(it.qty) || 0,
           price: Number(it.price) || 0,
           total: Number(it.qty || 0) * Number(it.price || 0),
-          condition: it.condition || null,
-          warrantyDate: it.warrantyDate || null,
-          warrantyDays: it.warrantyDays ? Number(it.warrantyDays) : null,
+          // The "Warranty" free-text column is persisted in the existing
+          // `condition` column (repurposed — the image format drops the
+          // separate Condition/W.Date/W.Days columns in favor of a single
+          // free-text Warranty column).
+          condition: it.warranty || null,
+          warrantyDate: null,
+          warrantyDays: null,
           remarks: it.remarks || null,
         }))
       const totalPrice = items.reduce((s, it) => s + it.total, 0)
-      const discount = 0
+      const discount = Number(data.discount) || 0
       const grandTotal = totalPrice - discount
       const payload = {
         id: data.id,
@@ -197,7 +201,6 @@ export function PurchasesModule() {
     )
   }, [data, search])
 
-  const totalItems = form.items.length
   const totalPrice = React.useMemo(
     () =>
       form.items.reduce(
@@ -206,7 +209,6 @@ export function PurchasesModule() {
       ),
     [form.items]
   )
-  const grandTotal = totalPrice
 
   const handleAdd = () => {
     setForm(emptyForm())
@@ -219,7 +221,9 @@ export function PurchasesModule() {
       supplierId: row.supplierId,
       invoiceNo: row.invoiceNo,
       attachment: row.attachment ?? "",
+      discount: String(row.discount ?? 0),
       remarks: row.remarks ?? "",
+      status: "Draft",
       items: (row.items ?? []).map((it: PurchaseItem) => ({
         id: it.id,
         productId: it.productId,
@@ -227,12 +231,11 @@ export function PurchasesModule() {
         brand: it.brand ?? "",
         model: it.model ?? "",
         serial: it.serial ?? "",
+        // Load warranty text from the repurposed `condition` column.
+        warranty: it.condition ?? "",
         qty: String(it.qty),
         price: String(it.price),
         total: it.total,
-        condition: it.condition ?? "New",
-        warrantyDate: it.warrantyDate ? toInputDate(it.warrantyDate) : "",
-        warrantyDays: it.warrantyDays ? String(it.warrantyDays) : "",
         remarks: it.remarks ?? "",
       })),
     })
@@ -473,244 +476,328 @@ export function PurchasesModule() {
         loading={saveMutation.isPending}
         submitLabel={form.id ? "Update" : "Save Purchase"}
       >
-        {/* Header section */}
-        <div className="rounded-md border p-3">
-          <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <FileText className="h-4 w-4" /> Header
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="grid gap-1">
-              <Label className="text-xs">Purchase Date</Label>
-              <Input
-                type="date"
-                value={form.purchaseDate}
-                onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })}
-              />
-            </div>
-            <div className="grid gap-1">
-              <Label className="text-xs">Supplier</Label>
-              <Select
-                value={form.supplierId ?? "none"}
-                onValueChange={(v) =>
-                  setForm({ ...form, supplierId: v === "none" ? null : v })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select supplier" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— None —</SelectItem>
-                  {(suppliers ?? []).map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-1">
-              <Label className="text-xs">Invoice No</Label>
-              <Input
-                value={form.invoiceNo}
-                onChange={(e) => setForm({ ...form, invoiceNo: e.target.value })}
-              />
-            </div>
-            <div className="grid gap-1">
-              <Label className="text-xs">Attachment (filename)</Label>
-              <Input
-                value={form.attachment}
-                onChange={(e) => setForm({ ...form, attachment: e.target.value })}
-                placeholder="invoice.pdf"
-              />
-            </div>
-            <div className="grid gap-1 sm:col-span-2">
-              <Label className="text-xs">Remarks</Label>
-              <Input
-                value={form.remarks}
-                onChange={(e) => setForm({ ...form, remarks: e.target.value })}
-              />
-            </div>
-          </div>
+        {/* === Header section — 2-column grid matching the image === */}
+        <div className="rounded-md border border-gray-300 bg-white">
+          <table className="w-full border-collapse text-sm">
+            <tbody>
+              {/* Row 1: Purchase Date | Invoice Number */}
+              <tr>
+                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">
+                  Purchase Date:
+                </td>
+                <td className="border border-gray-300 px-2 py-1.5">
+                  <Input
+                    type="date"
+                    value={form.purchaseDate}
+                    onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })}
+                    className="h-8 border-0 bg-transparent px-1 outline-none focus-visible:ring-0"
+                  />
+                </td>
+                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">
+                  Invoice Number:
+                </td>
+                <td className="border border-gray-300 px-2 py-1.5">
+                  <Input
+                    value={form.invoiceNo}
+                    onChange={(e) => setForm({ ...form, invoiceNo: e.target.value })}
+                    className="h-8 border-0 bg-transparent px-1 outline-none focus-visible:ring-0"
+                  />
+                </td>
+              </tr>
+              {/* Row 2: Supplier Name | Discount Amount */}
+              <tr>
+                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">
+                  Supplier Name:
+                </td>
+                <td className="border border-gray-300 px-2 py-1.5">
+                  <Select
+                    value={form.supplierId ?? "none"}
+                    onValueChange={(v) =>
+                      setForm({ ...form, supplierId: v === "none" ? null : v })
+                    }
+                  >
+                    <SelectTrigger className="h-8 border-0 bg-transparent px-1 focus:ring-0">
+                      <SelectValue placeholder="Select supplier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">— None —</SelectItem>
+                      {(suppliers ?? []).map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </td>
+                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">
+                  Discount Amount:
+                </td>
+                <td className="border border-gray-300 px-2 py-1.5">
+                  <Input
+                    type="number"
+                    value={form.discount}
+                    onChange={(e) => setForm({ ...form, discount: e.target.value })}
+                    className="h-8 border-0 bg-transparent px-1 outline-none focus-visible:ring-0"
+                  />
+                </td>
+              </tr>
+              {/* Row 3: Supplier Address | File Attach */}
+              <tr>
+                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap align-top">
+                  Supplier Address:
+                </td>
+                <td className="border border-gray-300 px-2 py-1.5 align-top">
+                  <textarea
+                    rows={3}
+                    readOnly
+                    value={
+                      (() => {
+                        const s = (suppliers ?? []).find((x) => x.id === form.supplierId)
+                        return s?.address?.trim() ? s.address : "—"
+                      })()
+                    }
+                    className="w-full resize-none border-0 bg-transparent px-1 py-1 text-sm outline-none focus:ring-0"
+                  />
+                </td>
+                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap align-top">
+                  File Attach:
+                </td>
+                <td className="border border-gray-300 px-2 py-1.5 align-top">
+                  <input
+                    type="file"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      setForm({ ...form, attachment: f ? f.name : "" })
+                    }}
+                    className="block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-gray-100 file:px-2 file:py-1 file:text-xs file:font-medium hover:file:bg-gray-200"
+                  />
+                  {form.attachment && (
+                    <span className="text-muted-foreground mt-1 block text-[10px]">
+                      Selected: {form.attachment}
+                    </span>
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        {/* Line items section */}
-        <div className="rounded-md border">
-          <div className="flex items-center justify-between border-b p-3">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <FileText className="h-4 w-4" /> Line Items ({totalItems})
-            </div>
-            <Button type="button" size="sm" onClick={addItem} variant="outline">
-              <Plus className="h-4 w-4" /> Add Row
-            </Button>
-          </div>
-          <div className="max-h-80 overflow-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/40 hover:bg-muted/40">
-                  <TableHead className="min-w-[160px]">Product</TableHead>
-                  <TableHead className="min-w-[100px]">Category</TableHead>
-                  <TableHead className="min-w-[100px]">Brand</TableHead>
-                  <TableHead className="min-w-[100px]">Model</TableHead>
-                  <TableHead className="min-w-[100px]">Serial</TableHead>
-                  <TableHead className="min-w-[70px]">Qty</TableHead>
-                  <TableHead className="min-w-[90px]">Price</TableHead>
-                  <TableHead className="min-w-[90px]">Total</TableHead>
-                  <TableHead className="min-w-[110px]">Condition</TableHead>
-                  <TableHead className="min-w-[120px]">W.Date</TableHead>
-                  <TableHead className="min-w-[70px]">W.Days</TableHead>
-                  <TableHead className="min-w-[100px]">Remarks</TableHead>
-                  <TableHead className="w-10" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {form.items.map((it, idx) => {
-                  const total =
-                    (Number(it.qty) || 0) * (Number(it.price) || 0)
-                  return (
-                    <TableRow key={idx}>
-                      <TableCell>
-                        <Select
-                          value={it.productId ?? "none"}
-                          onValueChange={(v) => handleItemProductChange(idx, v)}
-                        >
-                          <SelectTrigger className="w-full min-w-[160px]">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">— None —</SelectItem>
-                            {(products ?? []).map((p) => (
-                              <SelectItem key={p.id} value={p.id}>
-                                {p.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={it.category}
-                          onChange={(e) => updateItem(idx, { category: e.target.value })}
-                          className="min-w-[100px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={it.brand}
-                          onChange={(e) => updateItem(idx, { brand: e.target.value })}
-                          className="min-w-[100px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={it.model}
-                          onChange={(e) => updateItem(idx, { model: e.target.value })}
-                          className="min-w-[100px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={it.serial}
-                          onChange={(e) => updateItem(idx, { serial: e.target.value })}
-                          className="min-w-[100px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={it.qty}
-                          onChange={(e) => updateItem(idx, { qty: e.target.value })}
-                          className="min-w-[70px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={it.price}
-                          onChange={(e) => updateItem(idx, { price: e.target.value })}
-                          className="min-w-[90px]"
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {formatCurrency(total)}
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={it.condition || "New"}
-                          onValueChange={(v) => updateItem(idx, { condition: v })}
-                        >
-                          <SelectTrigger className="w-full min-w-[110px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="New">New</SelectItem>
-                            <SelectItem value="Used">Used</SelectItem>
-                            <SelectItem value="Refurbished">Refurbished</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="date"
-                          value={it.warrantyDate}
-                          onChange={(e) => updateItem(idx, { warrantyDate: e.target.value })}
-                          className="min-w-[120px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={it.warrantyDays}
-                          onChange={(e) => updateItem(idx, { warrantyDays: e.target.value })}
-                          className="min-w-[70px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={it.remarks}
-                          onChange={(e) => updateItem(idx, { remarks: e.target.value })}
-                          className="min-w-[100px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => removeItem(idx)}
-                          className="text-destructive hover:text-destructive"
-                          title="Remove"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
+        {/* === Line items table — 11 columns with light-blue header === */}
+        <div className="overflow-auto rounded-md border border-gray-300 bg-white">
+          <table className="w-full border-collapse text-xs">
+            <thead>
+              <tr style={{ background: "#9DC3E6" }} className="text-black">
+                {[
+                  "Product Name",
+                  "Category",
+                  "Brand Name",
+                  "Product Model",
+                  "Serial Number",
+                  "Warranty",
+                  "Qty",
+                  "Price",
+                  "Total Amount",
+                  "Remarks",
+                  "Actions",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="border border-gray-400 px-2 py-1.5 text-center font-bold whitespace-nowrap"
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {form.items.map((it, idx) => {
+                const total = (Number(it.qty) || 0) * (Number(it.price) || 0)
+                return (
+                  <tr key={idx} className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 p-1">
+                      <Select
+                        value={it.productId ?? "none"}
+                        onValueChange={(v) => handleItemProductChange(idx, v)}
+                      >
+                        <SelectTrigger className="h-8 min-w-[140px] border-0 bg-transparent px-1 focus:ring-0">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">— None —</SelectItem>
+                          {(products ?? []).map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="border border-gray-300 p-1">
+                      <Input
+                        value={it.category}
+                        onChange={(e) => updateItem(idx, { category: e.target.value })}
+                        className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-1">
+                      <Input
+                        value={it.brand}
+                        onChange={(e) => updateItem(idx, { brand: e.target.value })}
+                        className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-1">
+                      <Input
+                        value={it.model}
+                        onChange={(e) => updateItem(idx, { model: e.target.value })}
+                        className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-1">
+                      <Input
+                        value={it.serial}
+                        onChange={(e) => updateItem(idx, { serial: e.target.value })}
+                        className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-1">
+                      <Input
+                        value={it.warranty}
+                        onChange={(e) => updateItem(idx, { warranty: e.target.value })}
+                        placeholder="e.g. 30 Days"
+                        className="h-8 min-w-[90px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-1">
+                      <Input
+                        type="number"
+                        value={it.qty}
+                        onChange={(e) => updateItem(idx, { qty: e.target.value })}
+                        className="h-8 min-w-[60px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-1">
+                      <Input
+                        type="number"
+                        value={it.price}
+                        onChange={(e) => updateItem(idx, { price: e.target.value })}
+                        className="h-8 min-w-[80px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
+                      />
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1 text-right font-medium">
+                      {formatCurrency(total)}
+                    </td>
+                    <td className="border border-gray-300 p-1">
+                      <Input
+                        value={it.remarks}
+                        onChange={(e) => updateItem(idx, { remarks: e.target.value })}
+                        className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-1 text-center">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => removeItem(idx)}
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        title="Delete row"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+            {/* Footer — Total Amount row + Add Row button */}
+            <tfoot>
+              <tr className="bg-gray-50">
+                <td colSpan={8} className="border border-gray-300 px-3 py-2 text-right font-bold">
+                  Total Amount:
+                </td>
+                <td className="border-2 border-black px-2 py-2 text-right font-bold">
+                  {formatCurrency(totalPrice)}
+                </td>
+                <td colSpan={2} className="border border-gray-300 px-2 py-2 text-center">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addItem}
+                    variant="outline"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add Row
+                  </Button>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
 
-        {/* Footer section */}
-        <div className="grid grid-cols-1 gap-3 rounded-md border p-3 sm:grid-cols-3">
-          <div className="grid gap-1">
-            <Label className="text-xs">Total Price</Label>
-            <div className="text-lg font-bold">{formatCurrency(totalPrice)}</div>
-          </div>
-          <div className="grid gap-1">
-            <Label className="text-xs">Discount</Label>
-            <Input
-              type="number"
-              value={0}
-              disabled
-              title="Discount is auto-calculated as 0 for new purchases; edit on demand"
+        {/* === Bottom section — Note (left) + Status panel (right) === */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {/* Left: Note */}
+          <div className="rounded-md border border-gray-300 bg-white p-2">
+            <Label className="text-xs font-bold">Note</Label>
+            <textarea
+              rows={3}
+              value={form.remarks}
+              onChange={(e) => setForm({ ...form, remarks: e.target.value })}
+              placeholder="Optional notes / additional info"
+              className="mt-1 w-full resize-none rounded border border-gray-200 px-2 py-1 text-xs outline-none focus-visible:ring-1 focus-visible:ring-emerald-500"
             />
           </div>
-          <div className="grid gap-1">
-            <Label className="text-xs">Grand Total</Label>
-            <div className="text-lg font-bold text-emerald-600">
-              {formatCurrency(grandTotal)}
-            </div>
+          {/* Right: Status panel */}
+          <div className="rounded-md border border-gray-300 bg-white p-2">
+            <Label className="text-xs font-bold">Status</Label>
+            <table className="mt-1 w-full border-collapse text-xs">
+              <tbody>
+                <tr className="bg-gray-100">
+                  <td className="border border-gray-300 px-2 py-1 text-center font-semibold">
+                    Status
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1 text-center font-semibold">
+                    Saved
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-300 px-2 py-1.5 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, status: "Draft" })}
+                      className={
+                        form.status === "Draft"
+                          ? "font-bold text-emerald-700"
+                          : "text-gray-600 hover:text-emerald-700"
+                      }
+                    >
+                      ● Draft
+                    </button>
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1.5 text-center text-gray-400">
+                    {saveMutation.isPending ? "Saving…" : "—"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-300 px-2 py-1.5 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, status: "Confirmed" })}
+                      className={
+                        form.status === "Confirmed"
+                          ? "font-bold text-emerald-700"
+                          : "text-gray-600 hover:text-emerald-700"
+                      }
+                    >
+                      ● Confirmed
+                    </button>
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1.5 text-center text-gray-400">
+                    —
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </FormDialog>

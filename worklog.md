@@ -171,3 +171,48 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - The Purchases List home page is now formatted to match the user-uploaded reference photo. The table has the exact 7 columns (Purchase id / Purchase Date / Supplier Name / Invoice Number / Total Amount / Attach Invoice / Actions), teal/cyan header, dashed cell borders, blue hyperlink action links, and a footer "Total Amount" row showing the sum of all grand totals.
+
+---
+Task ID: SMS-PATCH-16
+Agent: main
+Task: Redesign New Purchase form to match user-uploaded reference photo
+
+Work Log:
+- Replaced the entire New Purchase form layout in `src/components/modules/purchases.tsx` to match the user-uploaded reference photo. The new form has 3 main sections:
+
+  **1. Header section — 2-column HTML table layout:**
+    - Row 1: Purchase Date (left) | Invoice Number (right)
+    - Row 2: Supplier Name (Select, left) | Discount Amount (number input, right)
+    - Row 3: Supplier Address (auto-fill textarea from selected supplier, left) | File Attach (file input, right)
+    - Labels are in light-gray cells (bg-gray-100), inputs in white cells, all with solid gray borders.
+
+  **2. Line items table — 11 columns with light-blue header (#9DC3E6):**
+    - Columns: Product Name | Category | Brand Name | Product Model | Serial Number | Warranty | Qty | Price | Total Amount | Remarks | Actions
+    - Replaced the old Condition/W.Date/W.Days (3 separate columns) with a single "Warranty" free-text column where the user can type "30 Days", "1 Year", etc.
+    - All inputs are borderless (border-0) and transparent so the table looks like a spreadsheet.
+    - Actions column has an X delete button per row.
+
+  **3. Table footer (tfoot):**
+    - Spans 8 cells empty + "Total Amount:" label (bold, right-aligned) + sum value in a thick black-bordered cell + "Add Row" button (cols 10-11).
+
+  **4. Bottom section — 2-column:**
+    - Left: Note panel — textarea bound to `form.remarks`.
+    - Right: Status panel — small 2-column 3-row table showing Status / Saved headers with Draft/Confirmed radio-button-style toggles.
+
+- Updated `ItemRow` interface: removed `condition`, `warrantyDate`, `warrantyDays` and added a single `warranty: string` field (free-text like "30 Days"). The warranty text is persisted by repurposing the existing `condition` column on PurchaseItem (the image's format doesn't have a separate Condition column, so this is a clean reuse).
+- Updated `PurchaseForm` interface: added `discount: string` (was hardcoded to 0) and `status: "Draft" | "Confirmed"` for the status panel.
+- Updated `saveMutation`: now sends `discount: Number(data.discount) || 0` instead of hardcoded 0, sends `condition: it.warranty || null` (repurposed), and `warrantyDate: null, warrantyDays: null`.
+- Updated `handleEdit`: extracts `warranty: it.condition ?? ""` when loading an existing purchase for edit.
+- Removed unused `totalItems` and `grandTotal` local variables (no longer rendered).
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser + VLM):
+- DOM eval confirmed all expected elements are present: Purchase Date/Invoice Number/Supplier Name/Discount Amount/Supplier Address/File Attach inputs, all 11 column headers, Add Row button, Draft/Confirmed buttons, Note textarea, file input. ✓
+- Clicked Add Row button via DOM — line items table went from 1 row to 2 rows. ✓ (Button works.)
+- VLM described the form as matching the expected layout: 2-column header grid with all 6 fields, 11-column line items table with light-blue header, Total Amount footer with sum in a black-bordered box, Note + Status panels at the bottom, Cancel button at the bottom right. ✓
+- VLM design assessment: "the format is generally clean and well-organized. Logical Grouping (Head-Body-Foot structure expected in accounting/ERP systems), Alignment (clean 2-column layout + distinct blue table header), Whitespace (adequate padding between sections), Visual Hierarchy (Total Amount bolded and boxed)." ✓
+
+Note: The "File Attach" field is a plain HTML `<input type="file">` that stores only the filename (not the actual file upload) — the upload API endpoint and FileUpload component from earlier patches (SMS-PATCH-12) were lost in the reset. If actual file upload is needed again, that work would need to be re-done explicitly.
+
+Stage Summary:
+- The New Purchase form now matches the user-uploaded reference photo: 2-column header grid (Purchase Date/Supplier Name/Supplier Address on left, Invoice Number/Discount Amount/File Attach on right), an 11-column line items table with a light-blue (#9DC3E6) header (Product Name / Category / Brand Name / Product Model / Serial Number / Warranty / Qty / Price / Total Amount / Remarks / Actions), a table footer with "Total Amount:" label + sum in a black-bordered box + Add Row button, and a bottom 2-column section with Note textarea (left) and Status panel showing Draft/Confirmed options (right). The Warranty column is persisted in the existing `condition` schema column (repurposed since the image's format drops the separate Condition column).
