@@ -28,7 +28,7 @@ import {
 import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PageHeader } from "@/components/page-header"
-import type { Purchase, PurchaseItem, Supplier, Product, Brand } from "@/lib/types"
+import type { Purchase, PurchaseItem, Supplier, Product, Brand, Condition, Warranty } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
 
 interface ItemRow {
@@ -122,6 +122,24 @@ export function PurchasesModule() {
     queryKey: ["brands"],
     queryFn: async () => {
       const res = await fetch("/api/brands")
+      if (!res.ok) throw new Error("Failed")
+      return res.json()
+    },
+  })
+
+  const { data: conditions } = useQuery<Condition[]>({
+    queryKey: ["conditions"],
+    queryFn: async () => {
+      const res = await fetch("/api/conditions")
+      if (!res.ok) throw new Error("Failed")
+      return res.json()
+    },
+  })
+
+  const { data: warranties } = useQuery<Warranty[]>({
+    queryKey: ["warranties"],
+    queryFn: async () => {
+      const res = await fetch("/api/warranties")
       if (!res.ok) throw new Error("Failed")
       return res.json()
     },
@@ -698,19 +716,33 @@ export function PurchasesModule() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">—</SelectItem>
-                          <SelectItem value="New">New</SelectItem>
-                          <SelectItem value="Used">Used</SelectItem>
-                          <SelectItem value="Refurbished">Refurbished</SelectItem>
+                          {(conditions ?? []).map((c) => (
+                            <SelectItem key={c.id} value={c.name}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </td>
                     <td className="border border-gray-300 p-1">
-                      <Input
-                        value={it.warranty}
-                        onChange={(e) => updateItem(idx, { warranty: e.target.value })}
-                        placeholder="e.g. 30 Days"
-                        className="h-8 min-w-[90px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
-                      />
+                      <Select
+                        value={it.warranty || "none"}
+                        onValueChange={(v) =>
+                          updateItem(idx, { warranty: v === "none" ? "" : v })
+                        }
+                      >
+                        <SelectTrigger className="h-8 min-w-[90px] border-0 bg-transparent px-1 text-xs focus:ring-0">
+                          <SelectValue placeholder="—" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">—</SelectItem>
+                          {(warranties ?? []).map((w) => (
+                            <SelectItem key={w.id} value={w.name}>
+                              {w.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </td>
                     <td className="border border-gray-300 p-1">
                       <Input

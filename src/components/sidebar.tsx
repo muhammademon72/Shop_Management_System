@@ -23,6 +23,8 @@ import {
   UserCog,
   DatabaseBackup,
   Store,
+  ShieldCheck,
+  Clock,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -53,6 +55,8 @@ const NAV: NavGroup[] = [
       { id: "brands", label: "Brand List", icon: Boxes },
       { id: "uoms", label: "UOM List", icon: Ruler },
       { id: "products", label: "Product List", icon: PackageSearch },
+      { id: "conditions", label: "Condition List", icon: ShieldCheck },
+      { id: "warranties", label: "Warranty List", icon: Clock },
     ],
   },
   {

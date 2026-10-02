@@ -273,3 +273,51 @@ Verification (Agent Browser):
 
 Stage Summary:
 - The Brand Name field in the New Purchase form is now a dropdown populated from the brands list (Dell, Sony, LG, Samsung, Apple, etc.). When a user selects a brand, the brand name is stored on the PurchaseItem's `brand` field (matching the existing free-text schema column).
+
+---
+Task ID: SMS-PATCH-19
+Agent: main
+Task: Add Condition List and Warranty List menu items under Product List
+
+Work Log:
+- Schema change in `prisma/schema.prisma`: added two new models
+  - `Condition` (id, name, status, createdAt, updatedAt) — for storing product conditions like New/Used/Refurbished
+  - `Warranty` (id, name, status, createdAt, updatedAt) — for storing warranty options like "7 Days", "1 Year", "Lifetime"
+  - Ran `bun run db:push` to apply the schema change and regenerate the Prisma Client.
+- Added TypeScript types in `src/lib/types.ts`: `Condition` and `Warranty` interfaces.
+- Added `conditions` and `warranties` to the `ModuleId` union type in `src/lib/store.ts`.
+- Created two new API routes:
+  - `src/app/api/conditions/route.ts` — full CRUD (GET list / POST create / PUT update / DELETE by id).
+  - `src/app/api/warranties/route.ts` — full CRUD (same shape).
+- Created two new module components (following the brands.tsx pattern):
+  - `src/components/modules/conditions.tsx` — `ConditionsModule` with DataTable + Add/Edit dialog (Name + Status switch) + Delete confirmation.
+  - `src/components/modules/warranties.tsx` — `WarrantiesModule` with same shape.
+- Updated `src/components/sidebar.tsx`:
+  - Added `ShieldCheck` and `Clock` icons to the lucide-react import.
+  - Added two new menu items to the "Product Manage" group, right after "Product List":
+    - `{ id: "conditions", label: "Condition List", icon: ShieldCheck }`
+    - `{ id: "warranties", label: "Warranty List", icon: Clock }`
+- Updated `src/components/app-shell.tsx`:
+  - Imported `ConditionsModule` and `WarrantiesModule`.
+  - Added `case "conditions": return <ConditionsModule />` and `case "warranties": return <WarrantiesModule />` to the ActiveModule switch.
+  - Added `conditions: "Conditions"` and `warranties: "Warranties"` to the moduleLabel map (used for the page header label).
+- Updated `src/components/modules/purchases.tsx` (New Purchase form):
+  - Imported `Condition` and `Warranty` types.
+  - Added two new `useQuery` hooks that fetch from `/api/conditions` and `/api/warranties`.
+  - Replaced the hardcoded Condition `<SelectItem>` options (New/Used/Refurbished) with options loaded from the conditions list.
+  - Replaced the Warranty free-text `<Input>` (placeholder "e.g. 30 Days") with a `<Select>` dropdown that loads options from the warranties list. This makes the Warranty column a dropdown instead of free-text, matching the user's reference image which showed predefined warranty values.
+- Seeded default data via a one-off script (now deleted):
+  - Conditions: New, Used, Refurbished
+  - Warranties: No Warranty, 7 Days, 15 Days, 30 Days, 90 Days, 180 Days, 1 Year, 2 Years, 3 Years, 5 Years, 10 Years, Lifetime
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser):
+- Sidebar shows the new menu items in the correct position: Categories List → Brand List → UOM List → Product List → **Condition List** → **Warranty List**. ✓
+- Clicked "Condition List" → page loads with heading "Conditions", columns Name/Status/Actions, and 3 seeded rows: New, Used, Refurbished. ✓
+- Clicked "Warranty List" → page loads with heading "Warranties" and 11 seeded rows: 7 Days, 15 Days, 30 Days, 90 Days, 180 Days, 1 Year, 2 Years, 3 Years, 5 Years, 10 Years, Lifetime. ✓
+- Opened New Purchase dialog → line items table still has 12 columns including Condition (col 6) and Warranty (col 7). ✓
+- Opened the Condition dropdown in the New Purchase form → options are now loaded from the Condition List (New, Used, Refurbished) instead of being hardcoded. ✓
+- Opened the Warranty dropdown in the New Purchase form → options are now loaded from the Warranty List (7 Days, 15 Days, 30 Days, 90 Days, 180 Days, 1 Year, 2 Years, 3 Years, 5 Years, 10 Years, Lifetime) instead of being a free-text input. ✓
+
+Stage Summary:
+- Two new sidebar menu items added under Product Manage, right after Product List: Condition List and Warranty List. Both have full CRUD modules (list + add/edit dialog + delete confirmation) backed by new `Condition` and `Warranty` Prisma models and `/api/conditions` + `/api/warranties` API routes. The New Purchase form's Condition and Warranty dropdowns now load their options from these new lists (instead of hardcoded options for Condition and a free-text input for Warranty), so the user can manage the available options from the sidebar.

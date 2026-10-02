@@ -14,6 +14,8 @@ import { CategoriesModule } from "@/components/modules/categories"
 import { BrandsModule } from "@/components/modules/brands"
 import { UomsModule } from "@/components/modules/uoms"
 import { ProductsModule } from "@/components/modules/products"
+import { ConditionsModule } from "@/components/modules/conditions"
+import { WarrantiesModule } from "@/components/modules/warranties"
 import { SuppliersModule } from "@/components/modules/suppliers"
 import { PurchasesModule } from "@/components/modules/purchases"
 import { InventoryModule } from "@/components/modules/inventory"
@@ -37,6 +39,10 @@ function ActiveModule() {
       return <UomsModule />
     case "products":
       return <ProductsModule />
+    case "conditions":
+      return <ConditionsModule />
+    case "warranties":
+      return <WarrantiesModule />
     case "suppliers":
       return <SuppliersModule />
     case "purchases":
@@ -89,6 +95,8 @@ export function AppShell() {
       brands: "Brands",
       uoms: "UOMs",
       products: "Products",
+      conditions: "Conditions",
+      warranties: "Warranties",
       suppliers: "Suppliers",
       purchases: "Purchases",
       inventory: "Inventory Stock",

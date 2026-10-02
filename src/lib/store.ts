@@ -6,6 +6,8 @@ export type ModuleId =
   | "brands"
   | "uoms"
   | "products"
+  | "conditions"
+  | "warranties"
   | "purchases"
   | "suppliers"
   | "inventory"

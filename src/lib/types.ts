@@ -25,6 +25,22 @@ export interface Uom {
   updatedAt: string
 }
 
+export interface Condition {
+  id: string
+  name: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Warranty {
+  id: string
+  name: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Product {
   id: string
   name: string
