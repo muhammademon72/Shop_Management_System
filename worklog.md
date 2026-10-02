@@ -216,3 +216,37 @@ Note: The "File Attach" field is a plain HTML `<input type="file">` that stores 
 
 Stage Summary:
 - The New Purchase form now matches the user-uploaded reference photo: 2-column header grid (Purchase Date/Supplier Name/Supplier Address on left, Invoice Number/Discount Amount/File Attach on right), an 11-column line items table with a light-blue (#9DC3E6) header (Product Name / Category / Brand Name / Product Model / Serial Number / Warranty / Qty / Price / Total Amount / Remarks / Actions), a table footer with "Total Amount:" label + sum in a black-bordered box + Add Row button, and a bottom 2-column section with Note textarea (left) and Status panel showing Draft/Confirmed options (right). The Warranty column is persisted in the existing `condition` schema column (repurposed since the image's format drops the separate Condition column).
+
+---
+Task ID: SMS-PATCH-17
+Agent: main
+Task: Update New Purchase form to match user's new reference photo (12 columns with Condition + Warranty separate columns)
+
+Work Log:
+- The user's new reference photo shows the line items table with 12 columns (not 11) — a "Condition" column was added back between "Serial Number" and "Warranty". My previous SMS-PATCH-16 implementation only had 11 columns (Warranty column was the only warranty field, persisted in the schema's `condition` column). To match the user's photo:
+- Schema change in `prisma/schema.prisma`:
+  - Added `warrantyText String?` field to `PurchaseItem` model. This stores the free-text Warranty value (e.g. "30 Days", "1 Year") separately from the Condition field.
+  - Ran `bun run db:push` to apply the schema change and regenerate the Prisma Client.
+- Updated `src/lib/types.ts` PurchaseItem interface:
+  - Added `warrantyText: string | null` between `condition` and `warrantyDate`.
+- Updated `src/app/api/purchases/route.ts`:
+  - POST handler: now persists `condition: it.condition` (New/Used/Refurbished) AND `warrantyText: it.warrantyText` (free text) separately.
+  - PUT handler: same change for edit/update flow.
+- Updated `src/components/modules/purchases.tsx`:
+  - `ItemRow` interface: added `condition: string` back (between `serial` and `warranty`). Both `condition` and `warranty` are now separate fields.
+  - `newItem()`: returns both `condition: ""` and `warranty: ""`.
+  - `saveMutation`: persists `condition: it.condition || null` (for the Condition column) and `warrantyText: it.warranty || null` (for the Warranty column) — clean separation, no more reuse of condition column for warranty text.
+  - `handleEdit`: loads `condition: it.condition ?? ""` AND `warranty: it.warrantyText ?? ""` when populating the form for edit.
+  - Line items table: added a "Condition" cell between "Serial Number" and "Warranty". The Condition cell uses a `<Select>` with options New / Used / Refurbished / — None —. The Warranty cell remains a free-text `<Input>` with placeholder "e.g. 30 Days".
+  - Table footer `<tfoot>`: updated `colSpan` from 8 to 9 (to accommodate the new 12th column). Total: 9 (empty + label) + 1 (Total Amount value) + 2 (Add Row button) = 12 cells, matching the new 12-column header.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser + VLM + direct Prisma script):
+- DOM eval confirmed all 12 column headers in the correct order: Product Name / Category / Brand Name / Product Model / Serial Number / **Condition** / Warranty / Qty / Price / Total Amount / Remarks / Actions. ✓
+- VLM described the columns from the screenshot: 1) Product Name 2) Category 3) Brand Name 4) Product Model 5) Serial Number 6) Condition 7) Warranty 8) Qty 9) Price 10) Total — and explicitly confirmed "Yes, there is a 'Condition' column located between 'Serial Number' and 'Warranty'." ✓
+- Created a test purchase PUR-COND-TEST via direct API POST with `condition:"New"` and `warrantyText:"30 Days"` → HTTP 201 Created. ✓
+- Direct Prisma script read the saved record from the database and confirmed both fields persisted correctly:
+  `{"condition":"New", "warrantyText":"30 Days", "warrantyDate":null, "warrantyDays":null}` ✓
+
+Stage Summary:
+- The New Purchase form now matches the user's new reference photo: line items table has 12 columns including both a "Condition" dropdown (New/Used/Refurbished) AND a free-text "Warranty" column (e.g. "30 Days", "1 Year"). Both fields are persisted separately in the database — `condition` (existing column) for the Condition value, and `warrantyText` (new schema column) for the Warranty free-text value. The form's other sections (2-column header grid, light-blue table header, Total Amount footer with thick black border, Note + Status panels at the bottom) remain unchanged from SMS-PATCH-16.

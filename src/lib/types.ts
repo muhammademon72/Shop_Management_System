@@ -64,6 +64,7 @@ export interface PurchaseItem {
   price: number
   total: number
   condition: string | null
+  warrantyText: string | null
   warrantyDate: string | null
   warrantyDays: number | null
   remarks: string | null

@@ -48,6 +48,7 @@ export async function POST(req: Request) {
               price: Number(it.price ?? 0),
               total: Number(it.total ?? 0),
               condition: it.condition ? String(it.condition) : null,
+              warrantyText: it.warrantyText ? String(it.warrantyText) : null,
               warrantyDate: it.warrantyDate
                 ? new Date(String(it.warrantyDate))
                 : null,
@@ -138,6 +139,7 @@ export async function PUT(req: Request) {
               price: Number(it.price ?? 0),
               total: Number(it.total ?? 0),
               condition: it.condition ? String(it.condition) : null,
+              warrantyText: it.warrantyText ? String(it.warrantyText) : null,
               warrantyDate: it.warrantyDate
                 ? new Date(String(it.warrantyDate))
                 : null,

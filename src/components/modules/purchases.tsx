@@ -38,6 +38,7 @@ interface ItemRow {
   brand: string
   model: string
   serial: string
+  condition: string
   warranty: string
   qty: string
   price: string
@@ -63,6 +64,7 @@ const newItem = (): ItemRow => ({
   brand: "",
   model: "",
   serial: "",
+  condition: "",
   warranty: "",
   qty: "1",
   price: "0",
@@ -129,11 +131,10 @@ export function PurchasesModule() {
           qty: Number(it.qty) || 0,
           price: Number(it.price) || 0,
           total: Number(it.qty || 0) * Number(it.price || 0),
-          // The "Warranty" free-text column is persisted in the existing
-          // `condition` column (repurposed — the image format drops the
-          // separate Condition/W.Date/W.Days columns in favor of a single
-          // free-text Warranty column).
-          condition: it.warranty || null,
+          // "Condition" column (New/Used/Refurbished) → existing `condition` schema column.
+          condition: it.condition || null,
+          // "Warranty" free-text column (e.g. "30 Days", "1 Year") → new `warrantyText` schema column.
+          warrantyText: it.warranty || null,
           warrantyDate: null,
           warrantyDays: null,
           remarks: it.remarks || null,
@@ -231,8 +232,10 @@ export function PurchasesModule() {
         brand: it.brand ?? "",
         model: it.model ?? "",
         serial: it.serial ?? "",
-        // Load warranty text from the repurposed `condition` column.
-        warranty: it.condition ?? "",
+        // Load Condition from `condition` schema column.
+        condition: it.condition ?? "",
+        // Load Warranty text from `warrantyText` schema column.
+        warranty: it.warrantyText ?? "",
         qty: String(it.qty),
         price: String(it.price),
         total: it.total,
@@ -582,7 +585,7 @@ export function PurchasesModule() {
           </table>
         </div>
 
-        {/* === Line items table — 11 columns with light-blue header === */}
+        {/* === Line items table — 12 columns with light-blue header === */}
         <div className="overflow-auto rounded-md border border-gray-300 bg-white">
           <table className="w-full border-collapse text-xs">
             <thead>
@@ -593,6 +596,7 @@ export function PurchasesModule() {
                   "Brand Name",
                   "Product Model",
                   "Serial Number",
+                  "Condition",
                   "Warranty",
                   "Qty",
                   "Price",
@@ -661,6 +665,24 @@ export function PurchasesModule() {
                       />
                     </td>
                     <td className="border border-gray-300 p-1">
+                      <Select
+                        value={it.condition || "none"}
+                        onValueChange={(v) =>
+                          updateItem(idx, { condition: v === "none" ? "" : v })
+                        }
+                      >
+                        <SelectTrigger className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus:ring-0">
+                          <SelectValue placeholder="—" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">—</SelectItem>
+                          <SelectItem value="New">New</SelectItem>
+                          <SelectItem value="Used">Used</SelectItem>
+                          <SelectItem value="Refurbished">Refurbished</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="border border-gray-300 p-1">
                       <Input
                         value={it.warranty}
                         onChange={(e) => updateItem(idx, { warranty: e.target.value })}
@@ -713,7 +735,7 @@ export function PurchasesModule() {
             {/* Footer — Total Amount row + Add Row button */}
             <tfoot>
               <tr className="bg-gray-50">
-                <td colSpan={8} className="border border-gray-300 px-3 py-2 text-right font-bold">
+                <td colSpan={9} className="border border-gray-300 px-3 py-2 text-right font-bold">
                   Total Amount:
                 </td>
                 <td className="border-2 border-black px-2 py-2 text-right font-bold">

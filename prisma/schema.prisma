@@ -102,6 +102,7 @@ model PurchaseItem {
   price         Float      @default(0)
   total         Float      @default(0)
   condition     String?
+  warrantyText  String?
   warrantyDate  DateTime?
   warrantyDays  Int?
   remarks       String?
