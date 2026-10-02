@@ -445,29 +445,35 @@ export function PurchasesModule() {
                     )}
                   </td>
                   <td className="border border-dashed border-gray-300 px-3 py-2 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setViewing(row)}
-                      className="text-[#0066cc] hover:underline"
-                    >
-                      View
-                    </button>
-                    ,{" "}
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(row)}
-                      className="text-[#0066cc] hover:underline"
-                    >
-                      Edit
-                    </button>
-                    ,{" "}
-                    <button
-                      type="button"
-                      onClick={() => setDeletingId(row.id)}
-                      className="text-[#0066cc] hover:underline"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex items-center justify-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setViewing(row)}
+                        title="View"
+                        className="h-7 w-7"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleEdit(row)}
+                        title="Edit"
+                        className="h-7 w-7"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setDeletingId(row.id)}
+                        title="Delete"
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))

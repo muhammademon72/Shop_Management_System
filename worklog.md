@@ -370,3 +370,26 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - The New Purchase form now has a Status dropdown on the LEFT of the Cancel button in the footer area. The dropdown shows Draft/Confirmed options. The old Status panel (radio-style buttons in a table at the bottom of the form) has been removed, and the Note panel now spans the full width.
+
+---
+Task ID: SMS-PATCH-22
+Agent: main
+Task: Replace View/Edit/Delete text links with icons in Purchase List Actions column
+
+Work Log:
+- Updated `src/components/modules/purchases.tsx` — Purchase List table's Actions column cell:
+  - Removed the three text-link `<button>` elements that showed "View, Edit, Delete" as comma-separated blue hyperlinks.
+  - Replaced them with three `<Button size="icon" variant="ghost">` icon buttons in a flex row (gap-1):
+    - **View** → `<Eye className="h-4 w-4" />` (lucide eye icon)
+    - **Edit** → `<Pencil className="h-4 w-4" />` (lucide pencil icon)
+    - **Delete** → `<Trash2 className="h-4 w-4" />` (lucide trash icon, with `text-destructive` color)
+  - Each button has a `title` attribute for accessibility/tooltip.
+  - All three onClick handlers are preserved (setViewing, handleEdit, setDeletingId).
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser + VLM):
+- DOM eval confirmed: each row now has 3 icon buttons (View/Edit/Delete) instead of text links. ✓
+- VLM zoomed in on the Actions column and confirmed: "View = Eye icon 👁, Edit = Pencil icon ✏️, Delete = Trash icon 🗑 — displayed as graphical icons in a row, not as text links." ✓
+
+Stage Summary:
+- The Purchase List table's Actions column now shows View / Edit / Delete as icon buttons (eye, pencil, trash) instead of comma-separated blue text links. The same View/Edit/Delete functionality is preserved via the existing onClick handlers.
