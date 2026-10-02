@@ -250,3 +250,26 @@ Verification (Agent Browser + VLM + direct Prisma script):
 
 Stage Summary:
 - The New Purchase form now matches the user's new reference photo: line items table has 12 columns including both a "Condition" dropdown (New/Used/Refurbished) AND a free-text "Warranty" column (e.g. "30 Days", "1 Year"). Both fields are persisted separately in the database — `condition` (existing column) for the Condition value, and `warrantyText` (new schema column) for the Warranty free-text value. The form's other sections (2-column header grid, light-blue table header, Total Amount footer with thick black border, Note + Status panels at the bottom) remain unchanged from SMS-PATCH-16.
+
+---
+Task ID: SMS-PATCH-18
+Agent: main
+Task: Make Brand field a dropdown in the New Purchase form
+
+Work Log:
+- The Brand Name column in the New Purchase form's line items table was previously a plain text `<Input>`. User asked for it to be a dropdown.
+- Added `Brand` to the type imports in `purchases.tsx`.
+- Added a new `useQuery<Brand[]>` hook that fetches the brands list from `/api/brands` (the brands module + API route already exist).
+- Replaced the Brand cell's `<Input>` with a `<Select>` that:
+  - Lists all brands by `name` (so the saved value matches the existing schema — `brand` is a free-text column on PurchaseItem).
+  - Has a `—` (None) option to clear the selection.
+  - Uses the same compact styling as the other cells (h-8, border-0, transparent bg, text-xs) so it matches the spreadsheet-like look of the rest of the table.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser):
+- DOM eval confirmed the Brand Name cell contains a `[role=combobox]` element (was a plain input before). ✓
+- Opened the Brand dropdown via DOM click — options listed: `—`, `Dell`, `Sony`, `LG`, `Samsung`, `Apple`. ✓
+- Selected "Samsung" — the combobox now displays "Samsung" as its selected value. ✓
+
+Stage Summary:
+- The Brand Name field in the New Purchase form is now a dropdown populated from the brands list (Dell, Sony, LG, Samsung, Apple, etc.). When a user selects a brand, the brand name is stored on the PurchaseItem's `brand` field (matching the existing free-text schema column).

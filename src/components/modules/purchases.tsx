@@ -28,7 +28,7 @@ import {
 import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PageHeader } from "@/components/page-header"
-import type { Purchase, PurchaseItem, Supplier, Product } from "@/lib/types"
+import type { Purchase, PurchaseItem, Supplier, Product, Brand } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
 
 interface ItemRow {
@@ -113,6 +113,15 @@ export function PurchasesModule() {
     queryKey: ["products"],
     queryFn: async () => {
       const res = await fetch("/api/products")
+      if (!res.ok) throw new Error("Failed")
+      return res.json()
+    },
+  })
+
+  const { data: brands } = useQuery<Brand[]>({
+    queryKey: ["brands"],
+    queryFn: async () => {
+      const res = await fetch("/api/brands")
       if (!res.ok) throw new Error("Failed")
       return res.json()
     },
@@ -644,11 +653,24 @@ export function PurchasesModule() {
                       />
                     </td>
                     <td className="border border-gray-300 p-1">
-                      <Input
-                        value={it.brand}
-                        onChange={(e) => updateItem(idx, { brand: e.target.value })}
-                        className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
-                      />
+                      <Select
+                        value={it.brand || "none"}
+                        onValueChange={(v) =>
+                          updateItem(idx, { brand: v === "none" ? "" : v })
+                        }
+                      >
+                        <SelectTrigger className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus:ring-0">
+                          <SelectValue placeholder="—" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">—</SelectItem>
+                          {(brands ?? []).map((b) => (
+                            <SelectItem key={b.id} value={b.name}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </td>
                     <td className="border border-gray-300 p-1">
                       <Input
