@@ -420,3 +420,38 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - The View (Eye) action in the Purchase List now opens a dialog showing the purchase in the SAME format as the New Purchase form (header grid + 11-column line items table + Total Amount footer + Note section) but in read-only mode. The dialog is full-page width so all 11 columns are clearly visible. The only action button is "Close".
+
+---
+Task ID: SMS-PATCH-24
+Agent: main
+Task: Add search option to Supplier Name and Product Name dropdowns in New Purchase form
+
+Work Log:
+- Recreated `src/components/searchable-select.tsx` (was lost in a reset) — a reusable `SearchableSelect` component using shadcn Popover + Command (cmdk):
+  - Trigger button shows the selected label or placeholder.
+  - Popover opens with a search input at the top and a scrollable list of options.
+  - Supports `allowNone` for clearable selections, `hint` field per option for secondary text (e.g. supplier mobile, product category).
+  - `compact` mode for h-8 trigger (matches the New Purchase form's cell style).
+  - cmdk's built-in fuzzy filter handles the search-as-you-type.
+- Imported `SearchableSelect` in `purchases.tsx`.
+- Replaced the Supplier Name `<Select>` in the New Purchase form header with `<SearchableSelect>`:
+  - Options show supplier name with mobile number as hint.
+  - Search placeholder: "Search supplier..."
+  - Empty text: "No supplier found."
+  - `allowNone` + `compact` + no border (transparent bg to match the cell style).
+- Replaced the Product Name `<Select>` in the line items table with `<SearchableSelect>`:
+  - Options show product name with category as hint.
+  - Search placeholder: "Search product..."
+  - Empty text: "No product found."
+  - `allowNone` + `compact` + `triggerClassName="min-w-[140px]"`.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser):
+- Supplier dropdown: opened, saw search input + 3 suppliers (Tech Distributors Inc. +1-555-0101, Appliance World Co. +1-555-0202, Mobile Wholesale Ltd. +1-555-0303). ✓
+- Typed "mobile" in Supplier search → filtered to just "Mobile Wholesale Ltd." ✓
+- Selected "Mobile Wholesale Ltd." → Supplier Address auto-filled to "789 Pine Rd, SF". ✓
+- Product dropdown: opened, saw search input + 5 products (Dell Monitor 27" / Samsung 55" 4K TV / Dell XPS 13 / Samsung Galaxy S24 / Apple iPhone 15 Pro) with category hints. ✓
+- Typed "iphone" in Product search → filtered to "Apple iPhone 15 Pro Mobile Phones". ✓
+
+Stage Summary:
+- The New Purchase form's Supplier Name and Product Name dropdowns are now searchable comboboxes. Typing in the search box filters the options in real-time. Selecting a supplier still auto-fills the Supplier Address. Selecting a product still auto-fills Category/Brand/Model/Serial.

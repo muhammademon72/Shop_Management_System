@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table"
 import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
+import { SearchableSelect } from "@/components/searchable-select"
 import { PageHeader } from "@/components/page-header"
 import type { Purchase, PurchaseItem, Supplier, Product, Brand, Condition, Warranty } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
@@ -597,24 +598,23 @@ export function PurchasesModule() {
                   Supplier Name:
                 </td>
                 <td className="border border-gray-300 px-2 py-1.5">
-                  <Select
-                    value={form.supplierId ?? "none"}
+                  <SearchableSelect
+                    value={form.supplierId}
                     onValueChange={(v) =>
-                      setForm({ ...form, supplierId: v === "none" ? null : v })
+                      setForm({ ...form, supplierId: v })
                     }
-                  >
-                    <SelectTrigger className="h-8 border-0 bg-transparent px-1 focus:ring-0">
-                      <SelectValue placeholder="Select supplier" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">— None —</SelectItem>
-                      {(suppliers ?? []).map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    options={(suppliers ?? []).map((s) => ({
+                      value: s.id,
+                      label: s.name,
+                      hint: s.mobile,
+                    }))}
+                    placeholder="Select supplier"
+                    searchPlaceholder="Search supplier..."
+                    emptyText="No supplier found."
+                    allowNone
+                    noneLabel="— None —"
+                    compact
+                  />
                 </td>
                 <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">
                   Discount Amount:
@@ -703,22 +703,22 @@ export function PurchasesModule() {
                 return (
                   <tr key={idx} className="bg-white hover:bg-gray-50">
                     <td className="border border-gray-300 p-1">
-                      <Select
-                        value={it.productId ?? "none"}
-                        onValueChange={(v) => handleItemProductChange(idx, v)}
-                      >
-                        <SelectTrigger className="h-8 min-w-[140px] border-0 bg-transparent px-1 focus:ring-0">
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">— None —</SelectItem>
-                          {(products ?? []).map((p) => (
-                            <SelectItem key={p.id} value={p.id}>
-                              {p.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        value={it.productId}
+                        onValueChange={(v) => handleItemProductChange(idx, v ?? "")}
+                        options={(products ?? []).map((p) => ({
+                          value: p.id,
+                          label: p.name,
+                          hint: p.category?.name,
+                        }))}
+                        placeholder="Select"
+                        searchPlaceholder="Search product..."
+                        emptyText="No product found."
+                        allowNone
+                        noneLabel="— None —"
+                        compact
+                        triggerClassName="min-w-[140px]"
+                      />
                     </td>
                     <td className="border border-gray-300 p-1">
                       <Input
