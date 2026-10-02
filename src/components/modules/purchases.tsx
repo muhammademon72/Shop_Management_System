@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Pencil, Plus, Trash2, Eye, FileText, Paperclip, X, Loader2 } from "lucide-react"
+import { Pencil, Plus, Trash2, Eye, FileText, Paperclip, X, Loader2, Upload, FileCheck2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -429,19 +429,19 @@ export function PurchasesModule() {
                         target="_blank"
                         rel="noopener noreferrer"
                         download={row.attachment.split("/").pop()}
-                        className="text-[#0066cc] hover:underline"
                         title={`Open / download ${row.attachment.split("/").pop()}`}
+                        className="inline-flex items-center justify-center text-emerald-600 hover:text-emerald-700"
                       >
-                        Attach File
+                        <FileCheck2 className="h-5 w-5" />
                       </a>
                     ) : (
                       <button
                         type="button"
                         onClick={() => handleEdit(row)}
-                        className="text-[#0066cc] hover:underline"
-                        title="Edit to attach an invoice"
+                        title="Edit to attach a file"
+                        className="inline-flex items-center justify-center text-gray-400 hover:text-[#0066cc]"
                       >
-                        Attach File
+                        <Upload className="h-5 w-5" />
                       </button>
                     )}
                   </td>

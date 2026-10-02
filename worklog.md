@@ -476,3 +476,24 @@ Verification (Agent Browser):
 
 Stage Summary:
 - The New Purchase form's Brand Name dropdown is now a searchable combobox. All three header dropdowns in the line items table (Product Name, Brand Name, Condition, Warranty) and the Supplier Name dropdown are now searchable — the user can type to filter options in real-time.
+
+---
+Task ID: SMS-PATCH-26
+Agent: main
+Task: Different icons for attached vs not-attached files in Purchase List's Attach File column
+
+Work Log:
+- Updated `src/components/modules/purchases.tsx` — Purchase List table's "Attach File" column cell:
+  - **File attached**: shows a `<FileCheck2>` icon (green document-with-checkmark) in an `<a>` tag that links to the attachment URL (clickable to download). Color: `text-emerald-600 hover:text-emerald-700`.
+  - **No file**: shows an `<Upload>` icon (gray upward arrow) in a `<button>` that calls `handleEdit(row)` (opens the Edit dialog so the user can attach a file). Color: `text-gray-400 hover:text-[#0066cc]`.
+  - Both icons are `h-5 w-5` (24px) and centered in the cell.
+- Added `FileCheck2` and `Upload` to the lucide-react imports.
+- Replaced the previous text-based "Attach File" links with these icon-based buttons.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser + VLM):
+- DOM eval confirmed: first row has `FileCheck2` icon (attached, clickable link); remaining rows have `Upload` icon (no file, clickable button). ✓
+- VLM screenshot verification: "Two different icons — teal document icon means 'file exists', gray upload icon means 'no file attached' and serves as a call-to-action to add one." ✓
+
+Stage Summary:
+- The Purchase List's Attach File column now shows two distinct icons: a green FileCheck2 icon when a file is attached (clickable to download), and a gray Upload icon when no file is attached (clickable to open Edit dialog for adding a file). This makes it easy to visually distinguish which purchases have attachments.
