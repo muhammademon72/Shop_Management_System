@@ -393,3 +393,30 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - The Purchase List table's Actions column now shows View / Edit / Delete as icon buttons (eye, pencil, trash) instead of comma-separated blue text links. The same View/Edit/Delete functionality is preserved via the existing onClick handlers.
+
+---
+Task ID: SMS-PATCH-23
+Agent: main
+Task: Redesign View dialog to match New Purchase form format (when clicking View in Actions)
+
+Work Log:
+- Replaced the old View dialog in `src/components/modules/purchases.tsx` with a new design that matches the New Purchase form's format:
+  - **Size**: Changed from `size="lg"` to `size="full"` so the 12-column line items table is fully visible.
+  - **Header section**: Same 2-column HTML table grid as the New Purchase form — Purchase Date / Supplier Name / Supplier Address (left) + Invoice Number / Discount Amount / File Attach (right). All fields are read-only (text display, not inputs). The File Attach field shows a download link if an attachment exists.
+  - **Line items table**: 11 columns (excluding Actions since this is read-only) with the same light-blue (#9DC3E6) header — Product Name / Category / Brand Name / Product Model / Serial Number / Condition / Warranty / Qty / Price / Total Amount / Remarks. Each row is read-only text (no inputs or selects).
+  - **Footer**: Total Amount row with the grand total in a thick black-bordered cell.
+  - **Note section**: Shows below the table if the purchase has remarks.
+  - **Close button**: Only action button (in the footer, right-aligned via hideFooter).
+  - Uses the `fmtDMY` helper (same as the Purchase List table) for date formatting in DD-MM-YYYY.
+  - Empty state row ("No line items in this purchase.") when there are no items.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser + VLM):
+- Clicked the View (Eye) icon button in the Purchase List's Actions column → dialog opened with title "Purchase PUR-COND-TEST". ✓
+- All 11 column headers visible in the correct order: Product Name / Category / Brand Name / Product Model / Serial Number / Condition / Warranty / Qty / Price / Total Amount / Remarks. ✓
+- Total Amount footer row visible. ✓
+- VLM described the dialog as matching the New Purchase form format: header grid with Purchase Date/Supplier Name/Supplier Address/Invoice Number/Discount Amount/File Attach, 11-column line items table with teal header, Total Amount footer ($100.00 in a bordered box), Close button. ✓
+- VLM summary: "structurally it is very similar to the New Purchase form... in View/Read-Only mode." ✓
+
+Stage Summary:
+- The View (Eye) action in the Purchase List now opens a dialog showing the purchase in the SAME format as the New Purchase form (header grid + 11-column line items table + Total Amount footer + Note section) but in read-only mode. The dialog is full-page width so all 11 columns are clearly visible. The only action button is "Close".

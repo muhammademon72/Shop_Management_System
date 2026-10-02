@@ -880,12 +880,14 @@ export function PurchasesModule() {
         </div>
       </FormDialog>
 
-      {/* View dialog */}
+      {/* View dialog — shows the purchase in the SAME format as the New
+          Purchase form (header grid + 12-column line items table + Note),
+          but in read-only mode. */}
       <FormDialog
         open={!!viewing}
         onOpenChange={(o) => !o && setViewing(null)}
         title={`Purchase ${viewing?.invoiceNo ?? ""}`}
-        size="lg"
+        size="full"
         hideFooter
         footer={
           <Button variant="outline" onClick={() => setViewing(null)}>
@@ -894,79 +896,172 @@ export function PurchasesModule() {
         }
       >
         {viewing && (
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <div>
-                <div className="text-muted-foreground text-xs">Date</div>
-                <div className="font-medium">
-                  {formatDate(viewing.purchaseDate)}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Supplier</div>
-                <div className="font-medium">
-                  {viewing.supplier?.name ?? "—"}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Invoice No</div>
-                <div className="font-medium">{viewing.invoiceNo}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Attachment</div>
-                <div className="font-medium">
-                  {viewing.attachment ?? "—"}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Total</div>
-                <div className="font-medium">
-                  {formatCurrency(viewing.totalPrice)}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Discount</div>
-                <div className="font-medium">
-                  {formatCurrency(viewing.discount)}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Grand Total</div>
-                <div className="text-emerald-600 font-bold">
-                  {formatCurrency(viewing.grandTotal)}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Remarks</div>
-                <div className="font-medium">{viewing.remarks ?? "—"}</div>
-              </div>
+          <div className="flex flex-col gap-3">
+            {/* === Header section — same 2-column grid as the form === */}
+            <div className="rounded-md border border-gray-300 bg-white">
+              <table className="w-full border-collapse text-sm">
+                <tbody>
+                  <tr>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">
+                      Purchase Date:
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1.5">
+                      {fmtDMY(viewing.purchaseDate)}
+                    </td>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">
+                      Invoice Number:
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1.5 font-medium">
+                      {viewing.invoiceNo}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">
+                      Supplier Name:
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1.5">
+                      {viewing.supplier?.name ?? "—"}
+                    </td>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">
+                      Discount Amount:
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1.5">
+                      {formatCurrency(viewing.discount)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap align-top">
+                      Supplier Address:
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1.5 align-top">
+                      {viewing.supplier?.address?.trim() ? viewing.supplier.address : "—"}
+                    </td>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap align-top">
+                      File Attach:
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1.5 align-top">
+                      {viewing.attachment ? (
+                        <a
+                          href={viewing.attachment}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download={viewing.attachment.split("/").pop()}
+                          className="text-[#0066cc] hover:underline"
+                        >
+                          {viewing.attachment.split("/").pop()}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40 hover:bg-muted/40">
-                    <TableHead>Product</TableHead>
-                    <TableHead>Qty</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Condition</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(viewing.items ?? []).map((it) => (
-                    <TableRow key={it.id}>
-                      <TableCell>{it.product?.name ?? "—"}</TableCell>
-                      <TableCell>{it.qty}</TableCell>
-                      <TableCell>{formatCurrency(it.price)}</TableCell>
-                      <TableCell className="font-medium">
-                        {formatCurrency(it.total)}
-                      </TableCell>
-                      <TableCell>{it.condition ?? "—"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+
+            {/* === Line items table — 12 columns (read-only) === */}
+            <div className="overflow-auto rounded-md border border-gray-300 bg-white">
+              <table className="w-full border-collapse text-xs">
+                <thead>
+                  <tr style={{ background: "#9DC3E6" }} className="text-black">
+                    {[
+                      "Product Name",
+                      "Category",
+                      "Brand Name",
+                      "Product Model",
+                      "Serial Number",
+                      "Condition",
+                      "Warranty",
+                      "Qty",
+                      "Price",
+                      "Total Amount",
+                      "Remarks",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className="border border-gray-400 px-2 py-1.5 text-center font-bold whitespace-nowrap"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(viewing.items ?? []).length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={11}
+                        className="border border-gray-300 px-3 py-6 text-center text-muted-foreground"
+                      >
+                        No line items in this purchase.
+                      </td>
+                    </tr>
+                  ) : (
+                    (viewing.items ?? []).map((it, idx) => (
+                      <tr key={it.id ?? idx} className="bg-white">
+                        <td className="border border-gray-300 px-2 py-1 font-medium">
+                          {it.product?.name ?? "—"}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1">
+                          {it.category ?? "—"}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1">
+                          {it.brand ?? "—"}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1">
+                          {it.model ?? "—"}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1 font-mono">
+                          {it.serial ?? "—"}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">
+                          {it.condition ?? "—"}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">
+                          {it.warrantyText ?? "—"}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">
+                          {it.qty}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1 text-right">
+                          {formatCurrency(it.price)}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1 text-right font-medium">
+                          {formatCurrency(it.total)}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1">
+                          {it.remarks ?? "—"}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+                {/* Footer — Total Amount row */}
+                {viewing.items && viewing.items.length > 0 && (
+                  <tfoot>
+                    <tr className="bg-gray-50">
+                      <td colSpan={9} className="border border-gray-300 px-3 py-2 text-right font-bold">
+                        Total Amount:
+                      </td>
+                      <td className="border-2 border-black px-2 py-2 text-right font-bold">
+                        {formatCurrency(viewing.grandTotal)}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2" />
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
             </div>
+
+            {/* === Note section === */}
+            {viewing.remarks && (
+              <div className="rounded-md border border-gray-300 bg-white p-2">
+                <Label className="text-xs font-bold">Note</Label>
+                <div className="mt-1 text-xs text-muted-foreground whitespace-pre-wrap">
+                  {viewing.remarks}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </FormDialog>
