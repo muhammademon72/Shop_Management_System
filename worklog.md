@@ -497,3 +497,31 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - The Purchase List's Attach File column now shows two distinct icons: a green FileCheck2 icon when a file is attached (clickable to download), and a gray Upload icon when no file is attached (clickable to open Edit dialog for adding a file). This makes it easy to visually distinguish which purchases have attachments.
+
+---
+Task ID: SMS-PATCH-27
+Agent: main
+Task: Fix Attach File to view instead of download; recreate upload infrastructure
+
+Work Log:
+- Re-created upload infrastructure (lost in a reset):
+  - `/home/z/my-project/public/uploads/purchases/` directory.
+  - `/api/upload` API route (`src/app/api/upload/route.ts`) — multipart upload, validates MIME type + 10MB max, saves to public/uploads/purchases/, returns `{url, name, size, type}`.
+  - `src/components/file-upload.tsx` — reusable `FileUpload` component with upload progress, image preview, file-type icon, remove button.
+- Updated New Purchase form (`purchases.tsx`):
+  - Replaced the plain `<input type="file">` (which only stored the filename, not the actual file) with the `FileUpload` component that uploads via `/api/upload` and stores the actual file URL.
+  - Imported `FileUpload` in the file.
+- Removed `download` attribute from ALL attachment links so clicking opens the file in a new browser tab (view) instead of forcing a download:
+  - Purchase List table's Attach File column (FileCheck2 icon link).
+  - View dialog's Attach File field (filename link).
+- Updated link titles from "Open / download ..." to "View ...".
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser):
+- Created a test PDF and uploaded it via the FileUpload component in the New Purchase form → file saved to `/public/uploads/purchases/1790950540734_test-view.pdf`. ✓
+- Saved the purchase → attachment URL persisted in DB. ✓
+- DOM eval confirmed: the attachment link has `hasDownload: false` (no download attribute) and `title: "View ..."`. ✓
+- Clicked the FileCheck2 icon → new browser tab opened at `localhost:3000/uploads/purchases/1790950540734_test-view.pdf` — the PDF is VIEWED in the browser, not downloaded. ✓
+
+Stage Summary:
+- Attach File now works end-to-end: (1) FileUpload component uploads the actual file to the server via /api/upload, (2) the file URL is stored in the database, (3) clicking the FileCheck2 icon in the Purchase List opens the file in a new browser tab for viewing (NOT downloading). The download attribute has been removed from all attachment links.

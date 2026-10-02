@@ -28,6 +28,7 @@ import {
 import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { SearchableSelect } from "@/components/searchable-select"
+import { FileUpload } from "@/components/file-upload"
 import { PageHeader } from "@/components/page-header"
 import type { Purchase, PurchaseItem, Supplier, Product, Brand, Condition, Warranty } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
@@ -428,8 +429,7 @@ export function PurchasesModule() {
                         href={row.attachment}
                         target="_blank"
                         rel="noopener noreferrer"
-                        download={row.attachment.split("/").pop()}
-                        title={`Open / download ${row.attachment.split("/").pop()}`}
+                        title={`View ${row.attachment.split("/").pop()}`}
                         className="inline-flex items-center justify-center text-emerald-600 hover:text-emerald-700"
                       >
                         <FileCheck2 className="h-5 w-5" />
@@ -650,19 +650,12 @@ export function PurchasesModule() {
                   Attach File:
                 </td>
                 <td className="border border-gray-300 px-2 py-1.5 align-top">
-                  <input
-                    type="file"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      setForm({ ...form, attachment: f ? f.name : "" })
-                    }}
-                    className="block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-gray-100 file:px-2 file:py-1 file:text-xs file:font-medium hover:file:bg-gray-200"
+                  <FileUpload
+                    value={form.attachment || null}
+                    onChange={(url) => setForm({ ...form, attachment: url ?? "" })}
+                    compact
+                    disabled={saveMutation.isPending}
                   />
-                  {form.attachment && (
-                    <span className="text-muted-foreground mt-1 block text-[10px]">
-                      Selected: {form.attachment}
-                    </span>
-                  )}
                 </td>
               </tr>
             </tbody>
@@ -944,8 +937,8 @@ export function PurchasesModule() {
                           href={viewing.attachment}
                           target="_blank"
                           rel="noopener noreferrer"
-                          download={viewing.attachment.split("/").pop()}
                           className="text-[#0066cc] hover:underline"
+                          title={`View ${viewing.attachment.split("/").pop()}`}
                         >
                           {viewing.attachment.split("/").pop()}
                         </a>
