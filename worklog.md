@@ -593,3 +593,29 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - The New Quotation form now has the same format as the New Purchase form: header section (Quotation Date/Customer Name/Customer Address | Invoice Number/Discount Amount/Note), line items table with 8 columns (Product Name, Brand, Model, Serial, Condition, Warranty, Price, Total) + Actions, Total Amount footer, Status dropdown in the footer. Product Name and Brand Name are searchable dropdowns. Condition and Warranty load from their respective lists.
+
+---
+Task ID: SMS-PATCH-30
+Agent: main
+Task: Redesign Quotation form header to match user-uploaded reference photo
+
+Work Log:
+- Added CompanyProfile type to imports in `quotations.tsx`.
+- Added `useQuery<CompanyProfile | null>` hook that fetches from `/api/company`.
+- Added `validity: string` field to `QuotationForm` interface + `emptyForm()` + `handleEdit()`.
+- Changed the invoice number prefix from `QUO-` to `QTN-{year}-{seq}` to match the image's "QTN-2026-011" style.
+- Redesigned the header section to match the user's reference photo:
+  1. **Company info section (left ~60%)**: Company Name (large bold text-xl), Address, Phone, Email, Website — all from CompanyProfile data.
+  2. **Quotation metadata (right ~40%)**: "QUOTATION" title (text-2xl font-bold uppercase), then a right-aligned table with Quotation No / Date / Validity — each label is right-aligned, value is a borderless input.
+  3. **Client Details section (below)**: "CLIENT DETAILS" header in purple-700 (uppercase bold). Contains Client Name (SearchableSelect with search), Contact (auto-fill from customer's mobile), Client Address (auto-fill from customer's address), Discount Amount (input), Note (input) — arranged in a 2-column grid.
+- Kept the line items table (8 columns + Actions) and footer (Total Amount + Add Row) unchanged.
+- Kept the footer buttons (Status dropdown on left + Cancel + Save Quotation on right) unchanged.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser + VLM):
+- DOM eval confirmed all header elements present: Quotation title, Quotation No, Date, Validity, Client Details header, Client Name, Contact, Client Address, Discount, Note. ✓
+- Company info loaded: "Rahman Enterprise" + address + phone + email + website. ✓
+- VLM described the header matching the image: Company Information (left), QUOTATION title + Quotation No + Date + Validity (right), CLIENT DETAILS in purple with Client Name + Contact + Client Address + Discount + Note. ✓
+
+Stage Summary:
+- The New Quotation form's header section now matches the user-uploaded reference photo: company info on the left (name, address, phone, email, website from CompanyProfile), "QUOTATION" title + Quotation No / Date / Validity on the right, "CLIENT DETAILS" section (purple header) below with client name/searchable select, contact, address, discount, and note. The line items table (8 columns + Actions) and footer remain unchanged.

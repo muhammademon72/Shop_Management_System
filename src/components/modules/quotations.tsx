@@ -28,7 +28,7 @@ import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { SearchableSelect } from "@/components/searchable-select"
 import { PageHeader } from "@/components/page-header"
-import type { Quotation, QuotationItem, Customer, Product, Brand, Condition, Warranty } from "@/lib/types"
+import type { Quotation, QuotationItem, Customer, Product, Brand, Condition, Warranty, CompanyProfile } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
 
 interface ItemRow {
@@ -39,6 +39,7 @@ interface ItemRow {
   serial: string
   condition: string
   warranty: string
+  qty: string
   price: string
   total: number
   remarks: string
@@ -47,6 +48,7 @@ interface ItemRow {
 interface QuotationForm {
   id?: string
   quotationDate: string
+  validity: string
   customerId: string | null
   invoiceNo: string
   discount: string
@@ -62,6 +64,7 @@ const newItem = (): ItemRow => ({
   serial: "",
   condition: "",
   warranty: "",
+  qty: "1",
   price: "0",
   total: 0,
   remarks: "",
@@ -69,8 +72,9 @@ const newItem = (): ItemRow => ({
 
 const emptyForm = (): QuotationForm => ({
   quotationDate: toInputDate(new Date()),
+  validity: "",
   customerId: null,
-  invoiceNo: `QUO-${Date.now().toString().slice(-6)}`,
+  invoiceNo: `QTN-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`,
   discount: "0",
   remarks: "",
   status: "Draft",
@@ -139,10 +143,20 @@ export function QuotationsModule() {
     },
   })
 
+  const { data: company } = useQuery<CompanyProfile | null>({
+    queryKey: ["company"],
+    queryFn: async () => {
+      const res = await fetch("/api/company")
+      if (!res.ok) throw new Error("Failed")
+      const data = await res.json()
+      return Array.isArray(data) ? data[0] ?? null : data
+    },
+  })
+
   const saveMutation = useMutation({
     mutationFn: async (data: QuotationForm) => {
       const items = data.items
-        .filter((it) => it.productId || it.price !== "0")
+        .filter((it) => it.productId || it.qty !== "0" || it.price !== "0")
         .map((it) => ({
           productId: it.productId || null,
           brand: it.brand || null,
@@ -150,8 +164,9 @@ export function QuotationsModule() {
           serial: it.serial || null,
           condition: it.condition || null,
           warrantyText: it.warranty || null,
+          qty: Number(it.qty) || 1,
           price: Number(it.price) || 0,
-          total: Number(it.price) || 0,
+          total: Number(it.qty || 0) * Number(it.price || 0),
           remarks: it.remarks || null,
         }))
       const totalPrice = items.reduce((s, it) => s + it.total, 0)
@@ -216,7 +231,7 @@ export function QuotationsModule() {
   }, [data, search])
 
   const totalPrice = React.useMemo(
-    () => form.items.reduce((s, it) => s + (Number(it.price) || 0), 0),
+    () => form.items.reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.price) || 0), 0),
     [form.items]
   )
   const discount = Number(form.discount) || 0
@@ -230,6 +245,7 @@ export function QuotationsModule() {
     setForm({
       id: row.id,
       quotationDate: toInputDate(row.quotationDate),
+      validity: "",
       customerId: row.customerId,
       invoiceNo: row.invoiceNo,
       discount: String(row.discount),
@@ -379,63 +395,133 @@ export function QuotationsModule() {
           </>
         }
       >
-        {/* === Header section === */}
-        <div className="rounded-md border border-gray-300 bg-white">
-          <table className="w-full border-collapse text-sm">
-            <tbody>
-              <tr>
-                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">Quotation Date:</td>
-                <td className="border border-gray-300 px-2 py-1.5">
-                  <Input type="date" value={form.quotationDate} onChange={(e) => setForm({ ...form, quotationDate: e.target.value })} className="h-8 border-0 bg-transparent px-1 outline-none focus-visible:ring-0" />
-                </td>
-                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">Invoice Number:</td>
-                <td className="border border-gray-300 px-2 py-1.5">
-                  <Input value={form.invoiceNo} onChange={(e) => setForm({ ...form, invoiceNo: e.target.value })} className="h-8 border-0 bg-transparent px-1 outline-none focus-visible:ring-0" />
-                </td>
-              </tr>
-              <tr>
-                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">Customer Name:</td>
-                <td className="border border-gray-300 px-2 py-1.5">
-                  <SearchableSelect
-                    value={form.customerId}
-                    onValueChange={(v) => setForm({ ...form, customerId: v })}
-                    options={(customers ?? []).map((s) => ({ value: s.id, label: s.name, hint: s.mobile }))}
-                    placeholder="Select customer"
-                    searchPlaceholder="Search customer..."
-                    emptyText="No customer found."
-                    allowNone
-                    noneLabel="— None —"
-                    compact
-                  />
-                </td>
-                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">Discount Amount:</td>
-                <td className="border border-gray-300 px-2 py-1.5">
-                  <Input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="h-8 border-0 bg-transparent px-1 outline-none focus-visible:ring-0" />
-                </td>
-              </tr>
-              <tr>
-                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap align-top">Customer Address:</td>
-                <td className="border border-gray-300 px-2 py-1.5 align-top">
-                  <textarea
-                    rows={3}
-                    readOnly
-                    value={(() => { const c = (customers ?? []).find((x) => x.id === form.customerId); return c?.address?.trim() ? c.address : "—" })()}
-                    className="w-full resize-none border-0 bg-transparent px-1 py-1 text-sm outline-none focus:ring-0"
-                  />
-                </td>
-                <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap align-top">Note:</td>
-                <td className="border border-gray-300 px-2 py-1.5 align-top">
-                  <textarea
-                    rows={3}
-                    value={form.remarks}
-                    onChange={(e) => setForm({ ...form, remarks: e.target.value })}
-                    placeholder="Optional notes"
-                    className="w-full resize-none border-0 bg-transparent px-1 py-1 text-sm outline-none focus:ring-0"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        {/* === Header section — Company info (left) + Quotation metadata (right) === */}
+        <div className="flex items-start justify-between gap-6 rounded-md border border-gray-300 bg-white p-4">
+          {/* Left: Company info */}
+          <div className="flex-1">
+            <div className="text-xl font-bold tracking-tight">
+              {company?.name ?? "Company Name"}
+            </div>
+            {company?.address && (
+              <div className="text-xs text-gray-600 mt-1">{company.address}</div>
+            )}
+            {company?.phone && (
+              <div className="text-xs text-gray-600">Phone: {company.phone}</div>
+            )}
+            {company?.email && (
+              <div className="text-xs text-gray-600">Email: {company.email}</div>
+            )}
+            {company?.website && (
+              <div className="text-xs text-gray-600">Website: {company.website}</div>
+            )}
+          </div>
+          {/* Right: Quotation title + metadata */}
+          <div className="text-right">
+            <div className="text-2xl font-bold uppercase tracking-wider mb-2">
+              Quotation
+            </div>
+            <table className="text-sm">
+              <tbody>
+                <tr>
+                  <td className="text-right pr-2 font-semibold whitespace-nowrap">Quotation No:</td>
+                  <td className="text-left">
+                    <Input
+                      value={form.invoiceNo}
+                      onChange={(e) => setForm({ ...form, invoiceNo: e.target.value })}
+                      className="h-8 border-0 bg-transparent px-1 text-sm outline-none focus-visible:ring-0"
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="text-right pr-2 font-semibold whitespace-nowrap">Date:</td>
+                  <td className="text-left">
+                    <Input
+                      type="date"
+                      value={form.quotationDate}
+                      onChange={(e) => setForm({ ...form, quotationDate: e.target.value })}
+                      className="h-8 border-0 bg-transparent px-1 text-sm outline-none focus-visible:ring-0"
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="text-right pr-2 font-semibold whitespace-nowrap">Validity:</td>
+                  <td className="text-left">
+                    <Input
+                      type="date"
+                      value={form.validity}
+                      onChange={(e) => setForm({ ...form, validity: e.target.value })}
+                      className="h-8 border-0 bg-transparent px-1 text-sm outline-none focus-visible:ring-0"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* === Client Details section === */}
+        <div className="rounded-md border border-gray-300 bg-white p-3">
+          <div className="mb-2 text-sm font-bold uppercase tracking-wide text-purple-700">
+            Client Details
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="grid gap-0.5">
+              <Label className="text-xs font-semibold">Client Name:</Label>
+              <SearchableSelect
+                value={form.customerId}
+                onValueChange={(v) => setForm({ ...form, customerId: v })}
+                options={(customers ?? []).map((s) => ({ value: s.id, label: s.name, hint: s.mobile }))}
+                placeholder="Select customer"
+                searchPlaceholder="Search customer..."
+                emptyText="No customer found."
+                allowNone
+                noneLabel="— None —"
+                compact
+              />
+            </div>
+            <div className="grid gap-0.5">
+              <Label className="text-xs font-semibold">Contact:</Label>
+              <div className="flex min-h-8 items-center rounded-md border border-dashed bg-muted/30 px-3 py-1 text-sm">
+                {(() => {
+                  const c = (customers ?? []).find((x) => x.id === form.customerId)
+                  return c?.mobile?.trim() ? c.mobile : "—"
+                })()}
+              </div>
+            </div>
+            <div className="grid gap-0.5 sm:col-span-2">
+              <Label className="text-xs font-semibold">Client Address:</Label>
+              <textarea
+                rows={2}
+                readOnly
+                value={(() => {
+                  const c = (customers ?? []).find((x) => x.id === form.customerId)
+                  return c?.address?.trim() ? c.address : "—"
+                })()}
+                className="w-full resize-none rounded-md border border-dashed bg-muted/30 px-3 py-1 text-sm outline-none focus:ring-0"
+              />
+            </div>
+          </div>
+          {/* Discount + Note inline */}
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="grid gap-0.5">
+              <Label className="text-xs font-semibold">Discount Amount:</Label>
+              <Input
+                type="number"
+                value={form.discount}
+                onChange={(e) => setForm({ ...form, discount: e.target.value })}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="grid gap-0.5">
+              <Label className="text-xs font-semibold">Note:</Label>
+              <Input
+                value={form.remarks}
+                onChange={(e) => setForm({ ...form, remarks: e.target.value })}
+                placeholder="Optional notes"
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
         </div>
 
         {/* === Line items table — 8 columns + Actions === */}

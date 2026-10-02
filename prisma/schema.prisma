@@ -182,6 +182,7 @@ model QuotationItem {
   serial       String?
   condition    String?
   warrantyText String?
+  qty          Float     @default(1)
   price        Float     @default(0)
   total        Float     @default(0)
   remarks      String?

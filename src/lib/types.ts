@@ -138,6 +138,7 @@ export interface QuotationItem {
   serial: string | null
   condition: string | null
   warrantyText: string | null
+  qty: number
   price: number
   total: number
   remarks: string | null
