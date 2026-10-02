@@ -728,24 +728,23 @@ export function PurchasesModule() {
                       />
                     </td>
                     <td className="border border-gray-300 p-1">
-                      <Select
-                        value={it.brand || "none"}
+                      <SearchableSelect
+                        value={it.brand || null}
                         onValueChange={(v) =>
-                          updateItem(idx, { brand: v === "none" ? "" : v })
+                          updateItem(idx, { brand: v ?? "" })
                         }
-                      >
-                        <SelectTrigger className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus:ring-0">
-                          <SelectValue placeholder="—" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">—</SelectItem>
-                          {(brands ?? []).map((b) => (
-                            <SelectItem key={b.id} value={b.name}>
-                              {b.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        options={(brands ?? []).map((b) => ({
+                          value: b.name,
+                          label: b.name,
+                        }))}
+                        placeholder="—"
+                        searchPlaceholder="Search brand..."
+                        emptyText="No brand found."
+                        allowNone
+                        noneLabel="—"
+                        compact
+                        triggerClassName="min-w-[100px]"
+                      />
                     </td>
                     <td className="border border-gray-300 p-1">
                       <Input

@@ -455,3 +455,24 @@ Verification (Agent Browser):
 
 Stage Summary:
 - The New Purchase form's Supplier Name and Product Name dropdowns are now searchable comboboxes. Typing in the search box filters the options in real-time. Selecting a supplier still auto-fills the Supplier Address. Selecting a product still auto-fills Category/Brand/Model/Serial.
+
+---
+Task ID: SMS-PATCH-25
+Agent: main
+Task: Add search option to Brand Name dropdown in New Purchase form
+
+Work Log:
+- Replaced the Brand Name `<Select>` in the New Purchase form's line items table with `<SearchableSelect>`:
+  - Options show brand name (value = brand name, so it persists on the existing free-text `brand` column).
+  - Search placeholder: "Search brand..."
+  - Empty text: "No brand found."
+  - `allowNone` + `compact` + `triggerClassName="min-w-[100px]"` to match the cell style.
+- The `SearchableSelect` component was already created in SMS-PATCH-24 and imported in purchases.tsx — just needed to use it in the Brand cell.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser):
+- Opened the Brand dropdown in the New Purchase form → saw search input + 5 brand options (Dell, Sony, LG, Samsung, Apple). ✓
+- Typed "sam" in the search box → filtered to just "Samsung". ✓
+
+Stage Summary:
+- The New Purchase form's Brand Name dropdown is now a searchable combobox. All three header dropdowns in the line items table (Product Name, Brand Name, Condition, Warranty) and the Supplier Name dropdown are now searchable — the user can type to filter options in real-time.
