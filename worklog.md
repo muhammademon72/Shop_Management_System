@@ -525,3 +525,33 @@ Verification (Agent Browser):
 
 Stage Summary:
 - Attach File now works end-to-end: (1) FileUpload component uploads the actual file to the server via /api/upload, (2) the file URL is stored in the database, (3) clicking the FileCheck2 icon in the Purchase List opens the file in a new browser tab for viewing (NOT downloading). The download attribute has been removed from all attachment links.
+
+---
+Task ID: SMS-PATCH-28
+Agent: main
+Task: Fix Purchase Delete not cleaning Inventory Stock + line item Remarks not appearing in Inventory
+
+Work Log:
+- **Schema change**: Added `purchaseId String?` and `purchase Purchase? @relation(fields: [purchaseId], references: [id], onDelete: Cascade)` to the `InventoryStock` model. Also added `inventoryStocks InventoryStock[]` to the `Purchase` model. This creates a proper cascade-delete relation: when a Purchase is deleted, all linked InventoryStock rows are automatically deleted.
+- Ran `bun run db:push` to apply the schema and regenerate the Prisma Client.
+- **POST handler** (New Purchase) — 3 fixes:
+  1. Removed `if (!it.productId) continue` — now ALL line items with qty > 0 get an inventory row (not just those with a Product selected). Changed to `if (qtyNum <= 0) continue`.
+  2. Changed `remarks: \`From purchase ${purchase.invoiceNo}\`` → `remarks: it.remarks ? String(it.remarks) : null` — the inventory row's remarks now come from the LINE ITEM's own Remarks field (as the user requested).
+  3. Added `purchaseId: purchase.id` to link the inventory row to its purchase (for cascade delete).
+- **PUT handler** (Edit Purchase) — 2 fixes:
+  1. Added `await tx.inventoryStock.deleteMany({ where: { purchaseId: String(id) } })` before the update — old inventory rows are deleted, then recreated from the updated line items (with line item remarks + purchaseId link).
+  2. Added the same inventory recreation loop as the POST handler (with line item remarks, purchaseId, qty > 0 filter, product UOM lookup).
+- **DELETE handler** (Delete Purchase):
+  - No manual inventory cleanup needed — `onDelete: Cascade` on the `purchaseId` relation means `db.purchase.delete()` automatically deletes all linked InventoryStock rows.
+  - Added a comment explaining the cascade behavior.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Direct Prisma script):
+- **TEST 1 (Remarks)**: Created a purchase (PUR-REMARKS-TEST) with a line item that has `remarks: "TEST REMARKS FROM LINE ITEM"`. Read the inventory row from the database:
+  - `brand: TestBrand, qty: 5, remarks: 'TEST REMARKS FROM LINE ITEM', purchaseId: cmur2...`
+  - "remarks matches line item? ✓ YES"
+- **TEST 2 (Cascade delete)**: Before deleting: 1 inventory row linked to the purchase. Deleted the purchase. After deleting: 0 inventory rows. "Cascade delete worked? ✓ YES"
+
+Stage Summary:
+- **Issue 1 fixed**: Deleting a purchase from the Purchase List now automatically deletes all linked Inventory Stock rows (via the new `purchaseId` cascade-delete relation).
+- **Issue 2 fixed**: The New Purchase form's line item Remarks are now properly copied to the Inventory Stock's Remarks field (instead of the hardcoded "From purchase XXX" text).

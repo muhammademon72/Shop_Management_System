@@ -100,6 +100,7 @@ model Purchase {
   attachment   String?
   remarks      String?
   items        PurchaseItem[]
+  inventoryStocks InventoryStock[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -125,19 +126,21 @@ model PurchaseItem {
 }
 
 model InventoryStock {
-  id        String   @id @default(cuid())
-  date      DateTime @default(now())
-  invoice   String
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id])
-  brand     String?
-  model     String?
-  serial    String?
-  qty       Float    @default(0)
-  uom       String?
-  remarks   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  date       DateTime @default(now())
+  invoice    String
+  productId  String?
+  product    Product? @relation(fields: [productId], references: [id])
+  purchaseId String?
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  brand      String?
+  model      String?
+  serial     String?
+  qty        Float    @default(0)
+  uom        String?
+  remarks    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 // ===== Sell Manage =====

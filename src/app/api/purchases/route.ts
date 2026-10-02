@@ -65,20 +65,35 @@ export async function POST(req: Request) {
         },
       })
 
-      // Auto-populate inventory stock rows from purchase items
+      // Auto-populate inventory stock rows from purchase items.
+      // Create a row for EVERY line item with qty > 0 (not just those
+      // with a Product selected — manual entries also need inventory tracking).
+      // The inventory row's remarks come from the LINE ITEM's own remarks
+      // field (not a hardcoded "From purchase XXX" marker). The purchaseId
+      // link lets DELETE cascade-clean the inventory rows.
       for (const it of items) {
-        if (!it.productId) continue
+        const qtyNum = Number(it.qty ?? 0)
+        if (qtyNum <= 0) continue
+        let uomName: string | null = null
+        if (it.productId) {
+          const prod = await tx.product.findUnique({
+            where: { id: String(it.productId) },
+            include: { uom: true },
+          })
+          uomName = prod?.uom?.name ?? null
+        }
         await tx.inventoryStock.create({
           data: {
             date: purchase.purchaseDate,
             invoice: purchase.invoiceNo,
-            productId: String(it.productId),
+            purchaseId: purchase.id,
+            productId: it.productId ? String(it.productId) : null,
             brand: it.brand ? String(it.brand) : null,
             model: it.model ? String(it.model) : null,
             serial: it.serial ? String(it.serial) : null,
-            qty: Number(it.qty ?? 0),
-            uom: null,
-            remarks: `From purchase ${purchase.invoiceNo}`,
+            qty: qtyNum,
+            uom: uomName,
+            remarks: it.remarks ? String(it.remarks) : null,
           },
         })
       }
@@ -106,6 +121,8 @@ export async function PUT(req: Request) {
     const updated = await db.$transaction(async (tx) => {
       // Delete existing items
       await tx.purchaseItem.deleteMany({ where: { purchaseId: String(id) } })
+      // Delete existing auto-created inventory rows for this purchase.
+      await tx.inventoryStock.deleteMany({ where: { purchaseId: String(id) } })
 
       const purchase = await tx.purchase.update({
         where: { id: String(id) },
@@ -152,6 +169,36 @@ export async function PUT(req: Request) {
         },
         include: { supplier: true, items: { include: { product: true } } },
       })
+
+      // Re-create inventory rows from the updated line items.
+      // Uses the LINE ITEM's own remarks (not a hardcoded marker).
+      for (const it of items) {
+        const qtyNum = Number(it.qty ?? 0)
+        if (qtyNum <= 0) continue
+        let uomName: string | null = null
+        if (it.productId) {
+          const prod = await tx.product.findUnique({
+            where: { id: String(it.productId) },
+            include: { uom: true },
+          })
+          uomName = prod?.uom?.name ?? null
+        }
+        await tx.inventoryStock.create({
+          data: {
+            date: purchase.purchaseDate,
+            invoice: purchase.invoiceNo,
+            purchaseId: purchase.id,
+            productId: it.productId ? String(it.productId) : null,
+            brand: it.brand ? String(it.brand) : null,
+            model: it.model ? String(it.model) : null,
+            serial: it.serial ? String(it.serial) : null,
+            qty: qtyNum,
+            uom: uomName,
+            remarks: it.remarks ? String(it.remarks) : null,
+          },
+        })
+      }
+
       return purchase
     })
 
@@ -166,7 +213,12 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get("id")
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })
+
+    // The InventoryStock.purchaseId relation has onDelete: Cascade, so
+    // deleting the Purchase will automatically delete all linked inventory
+    // rows. No manual cleanup needed.
     await db.purchase.delete({ where: { id } })
+
     return NextResponse.json({ success: true })
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
