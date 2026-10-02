@@ -496,12 +496,13 @@ export function PurchasesModule() {
         </table>
       </div>
 
-      {/* Edit/Create form dialog */}
+      {/* Edit/Create form dialog — uses full-page width since the line
+          items table has 12 columns and needs the extra space. */}
       <FormDialog
         open={open}
         onOpenChange={setOpen}
         title={form.id ? "Edit Purchase" : "New Purchase"}
-        size="xl"
+        size="full"
         onSubmit={handleSubmit}
         loading={saveMutation.isPending}
         submitLabel={form.id ? "Update" : "Save Purchase"}

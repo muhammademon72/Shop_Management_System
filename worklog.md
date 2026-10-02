@@ -321,3 +321,26 @@ Verification (Agent Browser):
 
 Stage Summary:
 - Two new sidebar menu items added under Product Manage, right after Product List: Condition List and Warranty List. Both have full CRUD modules (list + add/edit dialog + delete confirmation) backed by new `Condition` and `Warranty` Prisma models and `/api/conditions` + `/api/warranties` API routes. The New Purchase form's Condition and Warranty dropdowns now load their options from these new lists (instead of hardcoded options for Condition and a free-text input for Warranty), so the user can manage the available options from the sidebar.
+
+---
+Task ID: SMS-PATCH-20
+Agent: main
+Task: Make the New Purchase form wider — full page width
+
+Work Log:
+- Added a new "full" size option to `src/components/form-dialog.tsx`:
+  - The FormDialogProps `size` union type now includes `"full"` in addition to "sm" / "md" / "lg" / "xl".
+  - The `sizeMap` gained a new entry: `full: "sm:max-w-[calc(100vw-2rem)]"` — fills the viewport minus 1rem padding on each side.
+- Updated `src/components/modules/purchases.tsx`:
+  - Changed the New Purchase / Edit Purchase FormDialog's `size` prop from `"xl"` (which capped it at 1024px) to `"full"`.
+  - Updated the comment to explain why the New Purchase form needs the extra width (12-column line items table).
+- Other forms (categories, brands, products, suppliers, etc.) still use their existing sizes — only the New Purchase form was widened.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser + VLM):
+- Opened the New Purchase dialog and measured the dialog's bounding rect via DOM eval:
+  - Viewport width: 1280px → Dialog width: 1248px → **98% of viewport** (was previously capped at 1024px = 80% of viewport with `xl`). ✓
+- VLM described the dialog as taking "nearly the entire width of the viewport" with all 12 columns visible (Product Name / Category / Brand Name / Product Model / Serial Number / Condition / Warranty / Qty / Price / Total Amount / Remarks / Actions). ✓
+
+Stage Summary:
+- The New Purchase form now opens at full page width — taking ~98% of the viewport (vs. the previous 80% with the `xl` size). All 12 columns of the line items table are clearly visible without horizontal scrolling. Other forms remain unchanged.
