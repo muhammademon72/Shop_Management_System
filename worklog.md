@@ -344,3 +344,29 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - The New Purchase form now opens at full page width — taking ~98% of the viewport (vs. the previous 80% with the `xl` size). All 12 columns of the line items table are clearly visible without horizontal scrolling. Other forms remain unchanged.
+
+---
+Task ID: SMS-PATCH-21
+Agent: main
+Task: Add Status dropdown to the LEFT of the Cancel button in the New Purchase form footer
+
+Work Log:
+- Fixed `src/components/form-dialog.tsx` (re-applied SMS-PATCH-9 fix that was lost in a reset):
+  - Changed the footer rendering logic so `hideFooter={true}` + `footer={<.../>}` renders ONLY the custom footer (skipping the default Cancel/Submit pair). Previously `hideFooter={true}` hid the entire footer including the custom `footer` prop.
+  - New logic: `hideFooter ? (footer ? <DialogFooter>{footer}</DialogFooter> : null) : (<DialogFooter>default</DialogFooter>)`
+- Updated `src/components/modules/purchases.tsx` (New Purchase form):
+  - Set `hideFooter` on the FormDialog.
+  - Provided a custom `footer` containing:
+    - **LEFT side** (pushed left via `mr-auto`): a "Status" label + `<Select>` dropdown with Draft/Confirmed options + a "Saving…" indicator (shown while save is in progress).
+    - **RIGHT side**: Cancel button (outline variant) + Save Purchase button (type="submit", with Loader2 spinner while saving).
+  - Removed the old Status panel from the bottom section (the 2-column grid with Note + Status table). The Note panel now spans the full width of the bottom section.
+- Added `Loader2` to the lucide-react imports.
+- Lint: clean (0 errors, 0 warnings).
+
+Verification (Agent Browser + VLM):
+- DOM eval confirmed the footer renders correctly: Cancel + Save Purchase buttons present, Status label present, last combobox shows "Draft". ✓
+- Scrolled dialog to bottom and took screenshot — VLM confirmed: "On the left side: a 'Status' label with a dropdown showing 'Draft' (with a dropdown arrow indicator). On the right side: two buttons aligned horizontally — Cancel (white/outline style) and Save Purchase (dark/filled style)." ✓
+- The old Status panel (Draft/Confirmed radio-style buttons in a small table) has been removed from the bottom section — the Note panel now takes the full width. ✓
+
+Stage Summary:
+- The New Purchase form now has a Status dropdown on the LEFT of the Cancel button in the footer area. The dropdown shows Draft/Confirmed options. The old Status panel (radio-style buttons in a table at the bottom of the form) has been removed, and the Note panel now spans the full width.

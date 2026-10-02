@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Pencil, Plus, Trash2, Eye, FileText, Paperclip, X } from "lucide-react"
+import { Pencil, Plus, Trash2, Eye, FileText, Paperclip, X, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -506,6 +506,56 @@ export function PurchasesModule() {
         onSubmit={handleSubmit}
         loading={saveMutation.isPending}
         submitLabel={form.id ? "Update" : "Save Purchase"}
+        hideFooter
+        footer={
+          <>
+            {/* Status dropdown — sits on the LEFT of the footer */}
+            <div className="mr-auto flex items-center gap-2">
+              <Label className="text-xs font-bold text-muted-foreground">
+                Status
+              </Label>
+              <Select
+                value={form.status}
+                onValueChange={(v) =>
+                  setForm({
+                    ...form,
+                    status: v as "Draft" | "Confirmed",
+                  })
+                }
+              >
+                <SelectTrigger className="h-9 w-40">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Confirmed">Confirmed</SelectItem>
+                </SelectContent>
+              </Select>
+              {saveMutation.isPending && (
+                <span className="text-xs text-muted-foreground">
+                  Saving…
+                </span>
+              )}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={saveMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={saveMutation.isPending}
+            >
+              {saveMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {form.id ? "Update" : "Save Purchase"}
+            </Button>
+          </>
+        }
       >
         {/* === Header section — 2-column grid matching the image === */}
         <div className="rounded-md border border-gray-300 bg-white">
@@ -811,71 +861,16 @@ export function PurchasesModule() {
           </table>
         </div>
 
-        {/* === Bottom section — Note (left) + Status panel (right) === */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {/* Left: Note */}
-          <div className="rounded-md border border-gray-300 bg-white p-2">
-            <Label className="text-xs font-bold">Note</Label>
-            <textarea
-              rows={3}
-              value={form.remarks}
-              onChange={(e) => setForm({ ...form, remarks: e.target.value })}
-              placeholder="Optional notes / additional info"
-              className="mt-1 w-full resize-none rounded border border-gray-200 px-2 py-1 text-xs outline-none focus-visible:ring-1 focus-visible:ring-emerald-500"
-            />
-          </div>
-          {/* Right: Status panel */}
-          <div className="rounded-md border border-gray-300 bg-white p-2">
-            <Label className="text-xs font-bold">Status</Label>
-            <table className="mt-1 w-full border-collapse text-xs">
-              <tbody>
-                <tr className="bg-gray-100">
-                  <td className="border border-gray-300 px-2 py-1 text-center font-semibold">
-                    Status
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1 text-center font-semibold">
-                    Saved
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 px-2 py-1.5 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, status: "Draft" })}
-                      className={
-                        form.status === "Draft"
-                          ? "font-bold text-emerald-700"
-                          : "text-gray-600 hover:text-emerald-700"
-                      }
-                    >
-                      ● Draft
-                    </button>
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1.5 text-center text-gray-400">
-                    {saveMutation.isPending ? "Saving…" : "—"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 px-2 py-1.5 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, status: "Confirmed" })}
-                      className={
-                        form.status === "Confirmed"
-                          ? "font-bold text-emerald-700"
-                          : "text-gray-600 hover:text-emerald-700"
-                      }
-                    >
-                      ● Confirmed
-                    </button>
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1.5 text-center text-gray-400">
-                    —
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        {/* === Bottom section — Note (full width) === */}
+        <div className="rounded-md border border-gray-300 bg-white p-2">
+          <Label className="text-xs font-bold">Note</Label>
+          <textarea
+            rows={3}
+            value={form.remarks}
+            onChange={(e) => setForm({ ...form, remarks: e.target.value })}
+            placeholder="Optional notes / additional info"
+            className="mt-1 w-full resize-none rounded border border-gray-200 px-2 py-1 text-xs outline-none focus-visible:ring-1 focus-visible:ring-emerald-500"
+          />
         </div>
       </FormDialog>
 

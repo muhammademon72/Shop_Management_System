@@ -65,7 +65,12 @@ export function FormDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-4">{children}</div>
-          {!hideFooter && (
+          {hideFooter ? (
+            // When hideFooter is true, still render the custom `footer` prop
+            // (e.g. Status dropdown + Cancel + Save buttons in the New
+            // Purchase form) — just skip the default Cancel/Submit pair.
+            footer ? <DialogFooter>{footer}</DialogFooter> : null
+          ) : (
             <DialogFooter>
               <Button
                 type="button"
