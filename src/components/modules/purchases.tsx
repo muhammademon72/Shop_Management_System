@@ -309,7 +309,7 @@ export function PurchasesModule() {
   // Format matches the user-uploaded reference photo:
   //  - Teal header with white text, dashed cell borders
   //  - Purchase id | Purchase Date | Supplier Name | Invoice Number |
-  //    Total Amount | Attach Invoice | Actions
+  //    Total Amount | Attach File | Actions
   //  - Date in DD-MM-YYYY format
   //  - Footer "Total Amount" row showing the sum of all grandTotals
   const fmtDMY = (iso: string) => {
@@ -373,7 +373,7 @@ export function PurchasesModule() {
                 "Supplier Name",
                 "Invoice Number",
                 "Total Amount",
-                "Attach Invoice",
+                "Attach File",
                 "Actions",
               ].map((h) => (
                 <th
@@ -432,7 +432,7 @@ export function PurchasesModule() {
                         className="text-[#0066cc] hover:underline"
                         title={`Open / download ${row.attachment.split("/").pop()}`}
                       >
-                        Attach Invoice
+                        Attach File
                       </a>
                     ) : (
                       <button
@@ -441,7 +441,7 @@ export function PurchasesModule() {
                         className="text-[#0066cc] hover:underline"
                         title="Edit to attach an invoice"
                       >
-                        Attach Invoice
+                        Attach File
                       </button>
                     )}
                   </td>
@@ -628,7 +628,7 @@ export function PurchasesModule() {
                   />
                 </td>
               </tr>
-              {/* Row 3: Supplier Address | File Attach */}
+              {/* Row 3: Supplier Address | Attach File */}
               <tr>
                 <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap align-top">
                   Supplier Address:
@@ -647,7 +647,7 @@ export function PurchasesModule() {
                   />
                 </td>
                 <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap align-top">
-                  File Attach:
+                  Attach File:
                 </td>
                 <td className="border border-gray-300 px-2 py-1.5 align-top">
                   <input
@@ -936,7 +936,7 @@ export function PurchasesModule() {
                       {viewing.supplier?.address?.trim() ? viewing.supplier.address : "—"}
                     </td>
                     <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap align-top">
-                      File Attach:
+                      Attach File:
                     </td>
                     <td className="border border-gray-300 px-2 py-1.5 align-top">
                       {viewing.attachment ? (
