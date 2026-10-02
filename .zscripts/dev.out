@@ -1,0 +1,148 @@
+==========================================
+[2026-10-02 08:21:13] Starting: bun install
+==========================================
+[BUN] Installing dependencies...
+[0.03ms] ".env"
+bun install v1.3.14 (0d9b296a)
+
+Checked 849 installs across 944 packages (no changes) [172.00ms]
+==========================================
+[2026-10-02 08:21:13] Completed: bun install
+[LOG] Step: bun install | Duration: 0s
+==========================================
+
+==========================================
+[2026-10-02 08:21:13] Starting: bun run db:push
+==========================================
+[BUN] Setting up database...
+$ prisma db push --accept-data-loss
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": SQLite database "custom.db" at "file:/home/z/my-project/db/custom.db"
+
+The database is already in sync with the Prisma schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 165ms
+
+==========================================
+[2026-10-02 08:21:14] Completed: bun run db:push
+[LOG] Step: bun run db:push | Duration: 1s
+==========================================
+
+==========================================
+[2026-10-02 08:21:14] Starting: Starting Next.js dev server
+==========================================
+[BUN] Starting development server...
+==========================================
+[2026-10-02 08:21:14] Completed: Starting Next.js dev server
+[LOG] Step: Starting Next.js dev server | Duration: 0s
+==========================================
+
+==========================================
+$ next dev -p 3000 2>&1 | tee dev.log
+[2026-10-02 08:21:14] Starting: Waiting for Next.js dev server
+==========================================
+Waiting for Next.js dev server to be ready on localhost:3000...
+Attempt 1/60: Next.js dev server not ready yet, waiting...
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://21.0.13.134:3000
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 699ms
+Next.js dev server is ready!
+ GET / 200 in 2.9s (compile: 2.7s, render: 223ms)
+==========================================
+[2026-10-02 08:21:18] Completed: Waiting for Next.js dev server
+[LOG] Step: Waiting for Next.js dev server | Duration: 4s
+==========================================
+
+==========================================
+[2026-10-02 08:21:18] Starting: Health check
+==========================================
+[BUN] Performing health check...
+ GET / 200 in 158ms (compile: 108ms, render: 50ms)
+[BUN] Health check passed
+==========================================
+[2026-10-02 08:21:19] Completed: Health check
+[LOG] Step: Health check | Duration: 1s
+==========================================
+
+==========================================
+[2026-10-02 08:21:19] Starting: Starting mini-services
+==========================================
+Found mini-services directory, scanning for sub-services...
+Mini-services startup completed. Started 0 service(s).
+==========================================
+[2026-10-02 08:21:19] Completed: Starting mini-services
+[LOG] Step: Starting mini-services | Duration: 0s
+==========================================
+
+Next.js dev server is running in background (PID: 4581).
+Use 'kill 4581' to stop it.
+ GET / 200 in 117ms (compile: 3ms, render: 115ms)
+ GET / 200 in 222ms (compile: 9ms, render: 214ms)
+ GET / 200 in 128ms (compile: 17ms, render: 110ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Product`.`id` FROM `main`.`Product` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Supplier`.`id` FROM `main`.`Supplier` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Customer`.`id` FROM `main`.`Customer` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Sell`.`grandTotal` FROM `main`.`Sell` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Purchase`.`grandTotal` FROM `main`.`Purchase` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`InventoryStock`.`id` FROM `main`.`InventoryStock` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`Purchase`.`id`, `main`.`Purchase`.`purchaseDate`, `main`.`Purchase`.`supplierId`, `main`.`Purchase`.`invoiceNo`, `main`.`Purchase`.`totalPrice`, `main`.`Purchase`.`discount`, `main`.`Purchase`.`grandTotal`, `main`.`Purchase`.`attachment`, `main`.`Purchase`.`remarks`, `main`.`Purchase`.`createdAt`, `main`.`Purchase`.`updatedAt` FROM `main`.`Purchase` WHERE 1=1 ORDER BY `main`.`Purchase`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Supplier`.`id`, `main`.`Supplier`.`name`, `main`.`Supplier`.`mobile`, `main`.`Supplier`.`address`, `main`.`Supplier`.`status`, `main`.`Supplier`.`createdAt`, `main`.`Supplier`.`updatedAt` FROM `main`.`Supplier` WHERE `main`.`Supplier`.`id` IN (?,?,?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Sell`.`id`, `main`.`Sell`.`sellDate`, `main`.`Sell`.`customerId`, `main`.`Sell`.`invoiceNo`, `main`.`Sell`.`totalPrice`, `main`.`Sell`.`discount`, `main`.`Sell`.`grandTotal`, `main`.`Sell`.`paidAmount`, `main`.`Sell`.`dueAmount`, `main`.`Sell`.`remarks`, `main`.`Sell`.`createdAt`, `main`.`Sell`.`updatedAt` FROM `main`.`Sell` WHERE 1=1 ORDER BY `main`.`Sell`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Customer`.`id`, `main`.`Customer`.`name`, `main`.`Customer`.`mobile`, `main`.`Customer`.`address`, `main`.`Customer`.`status`, `main`.`Customer`.`createdAt`, `main`.`Customer`.`updatedAt` FROM `main`.`Customer` WHERE `main`.`Customer`.`id` IN (?,?) LIMIT ? OFFSET ?
+ GET /api/stats 200 in 213ms (compile: 118ms, render: 95ms)
+ GET / 200 in 89ms (compile: 3ms, render: 86ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Product`.`id` FROM `main`.`Product` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Supplier`.`id` FROM `main`.`Supplier` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Customer`.`id` FROM `main`.`Customer` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Sell`.`grandTotal` FROM `main`.`Sell` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Purchase`.`grandTotal` FROM `main`.`Purchase` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`InventoryStock`.`id` FROM `main`.`InventoryStock` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`Purchase`.`id`, `main`.`Purchase`.`purchaseDate`, `main`.`Purchase`.`supplierId`, `main`.`Purchase`.`invoiceNo`, `main`.`Purchase`.`totalPrice`, `main`.`Purchase`.`discount`, `main`.`Purchase`.`grandTotal`, `main`.`Purchase`.`attachment`, `main`.`Purchase`.`remarks`, `main`.`Purchase`.`createdAt`, `main`.`Purchase`.`updatedAt` FROM `main`.`Purchase` WHERE 1=1 ORDER BY `main`.`Purchase`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Supplier`.`id`, `main`.`Supplier`.`name`, `main`.`Supplier`.`mobile`, `main`.`Supplier`.`address`, `main`.`Supplier`.`status`, `main`.`Supplier`.`createdAt`, `main`.`Supplier`.`updatedAt` FROM `main`.`Supplier` WHERE `main`.`Supplier`.`id` IN (?,?,?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Sell`.`id`, `main`.`Sell`.`sellDate`, `main`.`Sell`.`customerId`, `main`.`Sell`.`invoiceNo`, `main`.`Sell`.`totalPrice`, `main`.`Sell`.`discount`, `main`.`Sell`.`grandTotal`, `main`.`Sell`.`paidAmount`, `main`.`Sell`.`dueAmount`, `main`.`Sell`.`remarks`, `main`.`Sell`.`createdAt`, `main`.`Sell`.`updatedAt` FROM `main`.`Sell` WHERE 1=1 ORDER BY `main`.`Sell`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Customer`.`id`, `main`.`Customer`.`name`, `main`.`Customer`.`mobile`, `main`.`Customer`.`address`, `main`.`Customer`.`status`, `main`.`Customer`.`createdAt`, `main`.`Customer`.`updatedAt` FROM `main`.`Customer` WHERE `main`.`Customer`.`id` IN (?,?) LIMIT ? OFFSET ?
+ GET /api/stats 200 in 11ms (compile: 3ms, render: 8ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Product`.`id` FROM `main`.`Product` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Supplier`.`id` FROM `main`.`Supplier` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Customer`.`id` FROM `main`.`Customer` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Sell`.`grandTotal` FROM `main`.`Sell` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Purchase`.`grandTotal` FROM `main`.`Purchase` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`InventoryStock`.`id` FROM `main`.`InventoryStock` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`Purchase`.`id`, `main`.`Purchase`.`purchaseDate`, `main`.`Purchase`.`supplierId`, `main`.`Purchase`.`invoiceNo`, `main`.`Purchase`.`totalPrice`, `main`.`Purchase`.`discount`, `main`.`Purchase`.`grandTotal`, `main`.`Purchase`.`attachment`, `main`.`Purchase`.`remarks`, `main`.`Purchase`.`createdAt`, `main`.`Purchase`.`updatedAt` FROM `main`.`Purchase` WHERE 1=1 ORDER BY `main`.`Purchase`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Supplier`.`id`, `main`.`Supplier`.`name`, `main`.`Supplier`.`mobile`, `main`.`Supplier`.`address`, `main`.`Supplier`.`status`, `main`.`Supplier`.`createdAt`, `main`.`Supplier`.`updatedAt` FROM `main`.`Supplier` WHERE `main`.`Supplier`.`id` IN (?,?,?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Sell`.`id`, `main`.`Sell`.`sellDate`, `main`.`Sell`.`customerId`, `main`.`Sell`.`invoiceNo`, `main`.`Sell`.`totalPrice`, `main`.`Sell`.`discount`, `main`.`Sell`.`grandTotal`, `main`.`Sell`.`paidAmount`, `main`.`Sell`.`dueAmount`, `main`.`Sell`.`remarks`, `main`.`Sell`.`createdAt`, `main`.`Sell`.`updatedAt` FROM `main`.`Sell` WHERE 1=1 ORDER BY `main`.`Sell`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Customer`.`id`, `main`.`Customer`.`name`, `main`.`Customer`.`mobile`, `main`.`Customer`.`address`, `main`.`Customer`.`status`, `main`.`Customer`.`createdAt`, `main`.`Customer`.`updatedAt` FROM `main`.`Customer` WHERE `main`.`Customer`.`id` IN (?,?) LIMIT ? OFFSET ?
+ GET /api/stats 200 in 16ms (compile: 3ms, render: 13ms)
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Product`.`id` FROM `main`.`Product` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Supplier`.`id` FROM `main`.`Supplier` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Customer`.`id` FROM `main`.`Customer` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Sell`.`grandTotal` FROM `main`.`Sell` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Purchase`.`grandTotal` FROM `main`.`Purchase` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`InventoryStock`.`id` FROM `main`.`InventoryStock` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`Purchase`.`id`, `main`.`Purchase`.`purchaseDate`, `main`.`Purchase`.`supplierId`, `main`.`Purchase`.`invoiceNo`, `main`.`Purchase`.`totalPrice`, `main`.`Purchase`.`discount`, `main`.`Purchase`.`grandTotal`, `main`.`Purchase`.`attachment`, `main`.`Purchase`.`remarks`, `main`.`Purchase`.`createdAt`, `main`.`Purchase`.`updatedAt` FROM `main`.`Purchase` WHERE 1=1 ORDER BY `main`.`Purchase`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Supplier`.`id`, `main`.`Supplier`.`name`, `main`.`Supplier`.`mobile`, `main`.`Supplier`.`address`, `main`.`Supplier`.`status`, `main`.`Supplier`.`createdAt`, `main`.`Supplier`.`updatedAt` FROM `main`.`Supplier` WHERE `main`.`Supplier`.`id` IN (?,?,?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Sell`.`id`, `main`.`Sell`.`sellDate`, `main`.`Sell`.`customerId`, `main`.`Sell`.`invoiceNo`, `main`.`Sell`.`totalPrice`, `main`.`Sell`.`discount`, `main`.`Sell`.`grandTotal`, `main`.`Sell`.`paidAmount`, `main`.`Sell`.`dueAmount`, `main`.`Sell`.`remarks`, `main`.`Sell`.`createdAt`, `main`.`Sell`.`updatedAt` FROM `main`.`Sell` WHERE 1=1 ORDER BY `main`.`Sell`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Customer`.`id`, `main`.`Customer`.`name`, `main`.`Customer`.`mobile`, `main`.`Customer`.`address`, `main`.`Customer`.`status`, `main`.`Customer`.`createdAt`, `main`.`Customer`.`updatedAt` FROM `main`.`Customer` WHERE `main`.`Customer`.`id` IN (?,?) LIMIT ? OFFSET ?
+ GET /api/stats 200 in 14ms (compile: 3ms, render: 12ms)
+ GET / 200 in 57ms (compile: 5ms, render: 51ms)
+ GET / 200 in 60ms (compile: 10ms, render: 50ms)
+prisma:query SELECT 1
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Product`.`id` FROM `main`.`Product` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Supplier`.`id` FROM `main`.`Supplier` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Customer`.`id` FROM `main`.`Customer` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Sell`.`grandTotal` FROM `main`.`Sell` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Purchase`.`grandTotal` FROM `main`.`Purchase` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`InventoryStock`.`id` FROM `main`.`InventoryStock` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`Purchase`.`id`, `main`.`Purchase`.`purchaseDate`, `main`.`Purchase`.`supplierId`, `main`.`Purchase`.`invoiceNo`, `main`.`Purchase`.`totalPrice`, `main`.`Purchase`.`discount`, `main`.`Purchase`.`grandTotal`, `main`.`Purchase`.`attachment`, `main`.`Purchase`.`remarks`, `main`.`Purchase`.`createdAt`, `main`.`Purchase`.`updatedAt` FROM `main`.`Purchase` WHERE 1=1 ORDER BY `main`.`Purchase`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Supplier`.`id`, `main`.`Supplier`.`name`, `main`.`Supplier`.`mobile`, `main`.`Supplier`.`address`, `main`.`Supplier`.`status`, `main`.`Supplier`.`createdAt`, `main`.`Supplier`.`updatedAt` FROM `main`.`Supplier` WHERE `main`.`Supplier`.`id` IN (?,?,?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Sell`.`id`, `main`.`Sell`.`sellDate`, `main`.`Sell`.`customerId`, `main`.`Sell`.`invoiceNo`, `main`.`Sell`.`totalPrice`, `main`.`Sell`.`discount`, `main`.`Sell`.`grandTotal`, `main`.`Sell`.`paidAmount`, `main`.`Sell`.`dueAmount`, `main`.`Sell`.`remarks`, `main`.`Sell`.`createdAt`, `main`.`Sell`.`updatedAt` FROM `main`.`Sell` WHERE 1=1 ORDER BY `main`.`Sell`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Customer`.`id`, `main`.`Customer`.`name`, `main`.`Customer`.`mobile`, `main`.`Customer`.`address`, `main`.`Customer`.`status`, `main`.`Customer`.`createdAt`, `main`.`Customer`.`updatedAt` FROM `main`.`Customer` WHERE `main`.`Customer`.`id` IN (?,?) LIMIT ? OFFSET ?
+ GET /api/stats 200 in 19ms (compile: 1915µs, render: 17ms)
+ GET / 200 in 52ms (compile: 2ms, render: 49ms)
