@@ -1112,3 +1112,22 @@ Stage Summary:
   - LEFT: large bold "Brands" label → search input ("Search brands...")
   - RIGHT: "Add Brand" button
 - Stacks vertically on small screens. Other DataTable-based modules are unaffected.
+
+---
+Task ID: UOM-SEARCH-LEFT-RIGHT-1
+Agent: main
+Task: Add "Units of Measurement (UOM)" label on the LEFT of search box and "Add UOM" button on the RIGHT — UOM List
+
+Work Log:
+- Updated `src/components/modules/uoms.tsx`:
+  - Removed the `actions={<Button>Add UOM</Button>}` prop from `<PageHeader>` (top-right button gone from page header).
+  - Passed `searchLeftAddon={<span className="text-3xl font-bold whitespace-nowrap">Units of Measurement (UOM)</span>}` — large bold label on the LEFT of the search input.
+  - Passed `toolbar={<Button onClick={handleAdd}><Plus /> Add UOM</Button>}` — the Add UOM button on the RIGHT of the search input (DataTable's existing `sm:justify-between` between left addon+search and toolbar pushes the toolbar to the right).
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The UOM List top row now shows (left-to-right on sm+ screens):
+  - LEFT: large bold "Units of Measurement (UOM)" label → search input ("Search UOMs...")
+  - RIGHT: "Add UOM" button
+- Stacks vertically on small screens. Same pattern as Brands list.
