@@ -825,3 +825,16 @@ Work Log:
 
 Stage Summary:
 - The Categories list's table header now has the same Royal Blue gradient background (`blue-700 → blue-800 → indigo-900`) and bold white text as the Brands list. Consistent styling across both modules. Other tables still use the default gray header.
+
+---
+Task ID: UOM-HEADER-GRADIENT-1
+Agent: main
+Task: Apply Royal Blue gradient + white font to UOM list's header
+
+Work Log:
+- Updated `src/components/modules/uoms.tsx`: passed `headerRowClassName="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 [&>th]:text-white [&>th]:font-bold"` to the `<DataTable>` — identical pattern to Brands and Categories.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The UOM list's table header now has the same Royal Blue gradient background and bold white text as Brands and Categories. Three modules now share the consistent header style.
