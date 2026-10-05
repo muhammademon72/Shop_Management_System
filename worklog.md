@@ -763,3 +763,19 @@ Work Log:
 
 Stage Summary:
 - The Brands list's table header now has a teal background (Tailwind `bg-teal-200`) with dark teal bold text. The change is scoped to the Brands module only — all other tables retain their default gray header. The DataTable now supports a `headerRowClassName` prop so any module can customize its header color in the future without touching shared code.
+
+---
+Task ID: BRAND-HEADER-SLATE-1
+Agent: main
+Task: Change Brand list's header background to Dark Slate Gray
+
+Work Log:
+- Updated `src/components/modules/brands.tsx`: changed `headerRowClassName` from `"bg-teal-200 hover:bg-teal-200 text-teal-950 font-bold"` → `"bg-slate-700 hover:bg-slate-700 text-white font-bold"`.
+  - `bg-slate-700` (#334155) — dark slate gray, classic dark gray with a bluish tint.
+  - `text-white` — high-contrast white text on the dark background.
+  - `font-bold` — emphasises header row.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Brands list's table header now has a dark slate gray background (Tailwind `bg-slate-700` ≈ #334155) with bold white text. All other tables remain unchanged.
