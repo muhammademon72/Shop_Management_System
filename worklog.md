@@ -905,3 +905,16 @@ Work Log:
 
 Stage Summary:
 - The Suppliers list's table header now has the same Royal Blue gradient and bold white text. Eight modules share the consistent style: Brands, Categories, UOMs, Products, Conditions, Warranties, Purchases, Suppliers.
+
+---
+Task ID: INVENTORY-HEADER-GRADIENT-1
+Agent: main
+Task: Apply Royal Blue gradient + white font to Inventory Stock list's header
+
+Work Log:
+- Updated `src/components/modules/inventory.tsx`: added `headerRowClassName="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 [&>th]:text-white [&>th]:font-bold"` to the `<DataTable>`.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Inventory Stock list's table header now has the same Royal Blue gradient and bold white text. Nine modules share the consistent style: Brands, Categories, UOMs, Products, Conditions, Warranties, Purchases, Suppliers, Inventory.

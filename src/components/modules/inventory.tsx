@@ -262,6 +262,7 @@ export function InventoryModule() {
         searchText={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search inventory..."
+        headerRowClassName="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 [&>th]:text-white [&>th]:font-bold"
       />
 
       <FormDialog
