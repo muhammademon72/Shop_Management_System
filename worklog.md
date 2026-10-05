@@ -918,3 +918,17 @@ Work Log:
 
 Stage Summary:
 - The Inventory Stock list's table header now has the same Royal Blue gradient and bold white text. Nine modules share the consistent style: Brands, Categories, UOMs, Products, Conditions, Warranties, Purchases, Suppliers, Inventory.
+
+---
+Task ID: QUOTATION-HEADER-GRADIENT-1
+Agent: main
+Task: Apply Royal Blue gradient + white font to Quotation list's header
+
+Work Log:
+- Found that `quotations.tsx` has the main Quotation list using the shared `<DataTable>` (line 350) — the user asked for "Quotation List" so updated only this one. (The form/view dialog line-item tables at lines 532 and 682 use a different light-blue #9DC3E6 header intentionally — they are inner line-item tables, not list pages, so left unchanged.)
+- Updated `src/components/modules/quotations.tsx`: added `headerRowClassName="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 [&>th]:text-white [&>th]:font-bold"` to the main `<DataTable>`.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Quotation list's main table header now has the same Royal Blue gradient and bold white text. Ten modules share the consistent style: Brands, Categories, UOMs, Products, Conditions, Warranties, Purchases, Suppliers, Inventory, Quotations. (Inner line-item tables inside New/View Quotation dialogs retain their light-blue #9DC3E6 header for in-form visual differentiation.)
