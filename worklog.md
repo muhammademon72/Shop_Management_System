@@ -851,3 +851,16 @@ Work Log:
 
 Stage Summary:
 - The Products list's table header now has the same Royal Blue gradient and bold white text as Brands / Categories / UOMs. Four modules now share the consistent header style.
+
+---
+Task ID: CONDITIONS-HEADER-GRADIENT-1
+Agent: main
+Task: Apply Royal Blue gradient + white font to Conditions list's header
+
+Work Log:
+- Updated `src/components/modules/conditions.tsx`: added `headerRowClassName="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 [&>th]:text-white [&>th]:font-bold"` to the `<DataTable>`.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Conditions list's table header now has the same Royal Blue gradient and bold white text. Five modules share the consistent style (Brands, Categories, UOMs, Products, Conditions).
