@@ -1072,3 +1072,25 @@ Work Log:
 
 Stage Summary:
 - The "Purchases" label is now `text-3xl` (30px) bold. Total: 5 size steps up from original `text-sm` (sm → base → lg → xl → 2xl → 3xl).
+
+---
+Task ID: BRAND-SEARCH-LEFT-1
+Agent: main
+Task: Add "Brands" label and "Add Brand" button to the LEFT of the search box in the Brand List
+
+Work Log:
+- **DataTable enhancement** (`src/components/data-table.tsx`): added a new optional prop `searchLeftAddon?: React.ReactNode`. When provided, it's rendered to the LEFT of the search input inside the existing search row (preserving the search icon + input + toolbar layout). Wrapped the search input + addon in a flex container `flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 sm:flex-1` so the addon flows naturally left-to-right with the search input on sm+ screens and stacks vertically on small screens.
+- **Brands module** (`src/components/modules/brands.tsx`):
+  - Removed the `actions={<Button>Add Brand</Button>}` prop from `<PageHeader>` — the top-right "Add Brand" button is gone from the page header.
+  - Passed `searchLeftAddon` to `<DataTable>` containing a fragment with:
+    1. `<span className="text-3xl font-bold whitespace-nowrap">Brands</span>` — a big bold "Brands" label (same size as the "Purchases" label on the Purchases page).
+    2. `<Button onClick={handleAdd}><Plus /> Add Brand</Button>` — the "Add Brand" button.
+  - Both render on the LEFT of the search box in the same row.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Brand List page now has a row (just below the "Brands" page title) with:
+  - LEFT: large bold "Brands" label + "Add Brand" button.
+  - Then: the search box ("Search brands...").
+- Layout: stacks vertically on small screens, single row on sm+ screens. Other DataTable callers are unaffected (searchLeftAddon is optional and defaults to undefined).

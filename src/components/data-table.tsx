@@ -38,6 +38,8 @@ interface DataTableProps<T> {
   className?: string
   /** Optional class override for the header <TableRow>. Default: "bg-muted/40 hover:bg-muted/40". */
   headerRowClassName?: string
+  /** Optional content rendered to the LEFT of the search input (e.g. a section label or action button). */
+  searchLeftAddon?: React.ReactNode
 }
 
 export function DataTable<T>({
@@ -55,6 +57,7 @@ export function DataTable<T>({
   footer,
   className,
   headerRowClassName,
+  searchLeftAddon,
 }: DataTableProps<T>) {
   const [internalSearch, setInternalSearch] = React.useState("")
   const isControlled = searchText !== undefined && onSearchChange !== undefined
@@ -72,19 +75,22 @@ export function DataTable<T>({
     <div className={cn("flex flex-col gap-3", className)}>
       {(search || toolbar) && (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          {search ? (
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="text-muted-foreground absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2" />
-              <Input
-                value={searchValue}
-                onChange={(e) => handleSearch(e.target.value)}
-                placeholder={searchPlaceholder}
-                className="pl-8"
-              />
-            </div>
-          ) : (
-            <div />
-          )}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 sm:flex-1">
+            {searchLeftAddon}
+            {search ? (
+              <div className="relative w-full sm:max-w-xs">
+                <Search className="text-muted-foreground absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2" />
+                <Input
+                  value={searchValue}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  placeholder={searchPlaceholder}
+                  className="pl-8"
+                />
+              </div>
+            ) : (
+              <div />
+            )}
+          </div>
           {toolbar && <div className="flex items-center gap-2">{toolbar}</div>}
         </div>
       )}
