@@ -779,3 +779,21 @@ Work Log:
 
 Stage Summary:
 - The Brands list's table header now has a dark slate gray background (Tailwind `bg-slate-700` ≈ #334155) with bold white text. All other tables remain unchanged.
+
+---
+Task ID: BRAND-HEADER-GRADIENT-1
+Agent: main
+Task: Apply a Royal Blue gradient to Brand list's header background
+
+Work Log:
+- Updated `src/components/modules/brands.tsx`: changed `headerRowClassName` from `"bg-slate-700 hover:bg-slate-700 text-white font-bold"` (solid dark slate gray) → a Royal Blue gradient: `"bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 text-white font-bold"`.
+  - `from-blue-700` (#1d4ed8) — Royal Blue family.
+  - `via-blue-800` (#1e40af) — deeper Royal Blue.
+  - `to-indigo-900` (#312e81) — dark indigo, adds depth.
+  - Hover variants keep the same gradient on hover (no flicker).
+  - `text-white font-bold` — high-contrast header text.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Brands list's table header now has a Royal Blue gradient background flowing from `blue-700` → `blue-800` → `indigo-900` (left to right) with bold white text. All other tables remain unchanged.
