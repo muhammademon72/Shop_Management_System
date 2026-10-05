@@ -1059,3 +1059,16 @@ Work Log:
 
 Stage Summary:
 - The "Purchases" label is now `text-xl` (20px) bold — was `text-sm` (14px). 3 sizes bigger.
+
+---
+Task ID: PURCHASE-LABEL-BIGGER-2
+Agent: main
+Task: Increase the "Purchases" label size by 2 more sizes
+
+Work Log:
+- Updated `src/components/modules/purchases.tsx` line 347: changed "Purchases" label from `text-xl font-bold` → `text-3xl font-bold`. That's 2 more size steps up (xl → 2xl → 3xl).
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The "Purchases" label is now `text-3xl` (30px) bold. Total: 5 size steps up from original `text-sm` (sm → base → lg → xl → 2xl → 3xl).
