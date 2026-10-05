@@ -657,3 +657,30 @@ Work Log:
 
 Stage Summary:
 - New Purchase form (and View Purchase dialog) width reduced from full-viewport (`calc(100vw-2rem)`) to a bounded `1280px`. The 12-column line items table still fits comfortably. Quotation form remains at `size="full"` (unchanged, since the user only asked about Purchase).
+
+---
+Task ID: QUOTATION-QTY-1
+Agent: main
+Task: Add Qty column after Warranty in the New Quotation form
+
+Work Log:
+- Inspected schema/types/API/UI: The `qty` field ALREADY existed end-to-end:
+  - `prisma/schema.prisma`: `QuotationItem.qty Float @default(1)` ✓
+  - `src/lib/types.ts`: `QuotationItem.qty: number` ✓
+  - `src/app/api/quotations/route.ts`: POST/PUT both accept `qty: Number(it.qty ?? 1)` ✓
+  - `src/components/modules/quotations.tsx`: `ItemRow.qty: string` ✓, `emptyForm()` initializes `qty: "1"` ✓, saveMutation already computed `total: qty × price` ✓, `totalPrice` memo already `sum(qty × price)` ✓
+  - `handleEdit()` already had `qty: String(it.qty ?? 1)` ✓
+- Only the UI was missing the Qty column. Updates to `src/components/modules/quotations.tsx`:
+  - **Form table header** (line 532): added "Qty" between "Warranty" and "Price" → `["Product Name", "Brand", "Model", "Serial", "Condition", "Warranty", "Qty", "Price", "Total", "Actions"]`
+  - **Form table body** (line 608-610): added a Qty input cell (`<Input type="number" min="0" step="any" value={it.qty} ...>`) between Warranty select and Price input
+  - **Form line total** (line 539): changed `Number(it.price) || 0` → `(Number(it.qty) || 0) * (Number(it.price) || 0)` so Total = Qty × Price
+  - **Form footer** (line 628): `colSpan={7}` → `colSpan={8}` for the Total Amount row (one more column now)
+  - **View dialog header** (line 682): added "Qty" between Warranty and Price
+  - **View dialog body** (line 699): added `<td>{it.qty ?? "—"}</td>` between Warranty and Price cells
+  - **View dialog empty state** (line 689): `colSpan={8}` → `colSpan={9}`
+  - **View dialog footer** (line 709): `colSpan={7}` → `colSpan={8}`
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200 on /.
+
+Stage Summary:
+- New Quotation form (and View Quotation dialog) now has 9 line-item columns: Product Name / Brand / Model / Serial / Condition / Warranty / **Qty** / Price / Total. The Qty input is a centered number input (min=0, step=any, default "1"). The line Total now correctly shows Qty × Price, and the form's Total Amount footer spans the updated column count. The save logic was already wired for qty — no API or schema change needed.

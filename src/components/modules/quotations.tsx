@@ -259,6 +259,7 @@ export function QuotationsModule() {
         serial: it.serial ?? "",
         condition: it.condition ?? "",
         warranty: it.warrantyText ?? "",
+        qty: String(it.qty ?? 1),
         price: String(it.price),
         total: it.total,
         remarks: it.remarks ?? "",
@@ -524,19 +525,19 @@ export function QuotationsModule() {
           </div>
         </div>
 
-        {/* === Line items table — 8 columns + Actions === */}
+        {/* === Line items table — 9 columns + Actions === */}
         <div className="overflow-auto rounded-md border border-gray-300 bg-white">
           <table className="w-full border-collapse text-xs">
             <thead>
               <tr style={{ background: "#9DC3E6" }} className="text-black">
-                {["Product Name", "Brand", "Model", "Serial", "Condition", "Warranty", "Price", "Total", "Actions"].map((h) => (
+                {["Product Name", "Brand", "Model", "Serial", "Condition", "Warranty", "Qty", "Price", "Total", "Actions"].map((h) => (
                   <th key={h} className="border border-gray-400 px-2 py-1.5 text-center font-bold whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {form.items.map((it, idx) => {
-                const total = Number(it.price) || 0
+                const total = (Number(it.qty) || 0) * (Number(it.price) || 0)
                 return (
                   <tr key={idx} className="bg-white hover:bg-gray-50">
                     <td className="border border-gray-300 p-1">
@@ -606,6 +607,9 @@ export function QuotationsModule() {
                       </Select>
                     </td>
                     <td className="border border-gray-300 p-1">
+                      <Input type="number" min="0" step="any" value={it.qty} onChange={(e) => updateItem(idx, { qty: e.target.value })} className="h-8 min-w-[60px] border-0 bg-transparent px-1 text-xs text-center focus-visible:ring-0" />
+                    </td>
+                    <td className="border border-gray-300 p-1">
                       <Input type="number" value={it.price} onChange={(e) => updateItem(idx, { price: e.target.value })} className="h-8 min-w-[80px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0" />
                     </td>
                     <td className="border border-gray-300 px-2 py-1 text-right font-medium">
@@ -622,7 +626,7 @@ export function QuotationsModule() {
             </tbody>
             <tfoot>
               <tr className="bg-gray-50">
-                <td colSpan={7} className="border border-gray-300 px-3 py-2 text-right font-bold">Total Amount:</td>
+                <td colSpan={8} className="border border-gray-300 px-3 py-2 text-right font-bold">Total Amount:</td>
                 <td className="border-2 border-black px-2 py-2 text-right font-bold">{formatCurrency(totalPrice)}</td>
                 <td className="border border-gray-300 px-2 py-2 text-center">
                   <Button type="button" size="sm" onClick={addItem} variant="outline">
@@ -675,14 +679,14 @@ export function QuotationsModule() {
               <table className="w-full border-collapse text-xs">
                 <thead>
                   <tr style={{ background: "#9DC3E6" }} className="text-black">
-                    {["Product Name", "Brand", "Model", "Serial", "Condition", "Warranty", "Price", "Total"].map((h) => (
+                    {["Product Name", "Brand", "Model", "Serial", "Condition", "Warranty", "Qty", "Price", "Total"].map((h) => (
                       <th key={h} className="border border-gray-400 px-2 py-1.5 text-center font-bold whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {(viewing.items ?? []).length === 0 ? (
-                    <tr><td colSpan={8} className="border border-gray-300 px-3 py-6 text-center text-muted-foreground">No line items.</td></tr>
+                    <tr><td colSpan={9} className="border border-gray-300 px-3 py-6 text-center text-muted-foreground">No line items.</td></tr>
                   ) : (
                     (viewing.items ?? []).map((it, idx) => (
                       <tr key={it.id ?? idx} className="bg-white">
@@ -692,6 +696,7 @@ export function QuotationsModule() {
                         <td className="border border-gray-300 px-2 py-1 font-mono">{it.serial ?? "—"}</td>
                         <td className="border border-gray-300 px-2 py-1 text-center">{it.condition ?? "—"}</td>
                         <td className="border border-gray-300 px-2 py-1 text-center">{it.warrantyText ?? "—"}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{it.qty ?? "—"}</td>
                         <td className="border border-gray-300 px-2 py-1 text-right">{formatCurrency(it.price)}</td>
                         <td className="border border-gray-300 px-2 py-1 text-right font-medium">{formatCurrency(it.total)}</td>
                       </tr>
@@ -701,7 +706,7 @@ export function QuotationsModule() {
                 {viewing.items && viewing.items.length > 0 && (
                   <tfoot>
                     <tr className="bg-gray-50">
-                      <td colSpan={7} className="border border-gray-300 px-3 py-2 text-right font-bold">Total Amount:</td>
+                      <td colSpan={8} className="border border-gray-300 px-3 py-2 text-right font-bold">Total Amount:</td>
                       <td className="border-2 border-black px-2 py-2 text-right font-bold">{formatCurrency(viewing.grandTotal)}</td>
                     </tr>
                   </tfoot>
