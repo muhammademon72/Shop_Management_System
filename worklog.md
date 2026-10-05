@@ -877,3 +877,18 @@ Work Log:
 
 Stage Summary:
 - The Warranty list's table header now has the same Royal Blue gradient and bold white text. Six modules share the consistent style: Brands, Categories, UOMs, Products, Conditions, Warranties.
+
+---
+Task ID: PURCHASE-HEADER-GRADIENT-1
+Agent: main
+Task: Apply Royal Blue gradient + white font to Purchase list's header
+
+Work Log:
+- Found that `purchases.tsx` uses a CUSTOM inline `<table>` (not the shared `DataTable` component) — the inline `style={{ background: "linear-gradient(to bottom, #4DB6AC, #80CBC4)" }}` was already on the header `<tr>` (a teal gradient). Text was already `text-white`.
+- Updated `src/components/modules/purchases.tsx`: changed the inline gradient from teal `linear-gradient(to bottom, #4DB6AC, #80CBC4)` → Royal Blue `linear-gradient(to right, #1d4ed8, #1e40af 50%, #312e81)`. This matches the Tailwind colors used by other modules (`blue-700` #1d4ed8 → `blue-800` #1e40af → `indigo-900` #312e81) but in left-to-right direction.
+- Text remains `text-white` (already in place). The `<th>` cells do not have a baked `text-foreground` here since this is a plain `<table>`, so the white text was already rendering.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Purchase list's table header now uses a Royal Blue gradient (`blue-700 → blue-800 → indigo-900` going left-to-right) with bold white text, matching the style applied to Brands / Categories / UOMs / Products / Conditions / Warranties. Seven modules now share the consistent header style. Note: this module uses an inline table (not the shared DataTable) so the change was made directly to the `<tr style>` inline gradient, not via the `headerRowClassName` prop.

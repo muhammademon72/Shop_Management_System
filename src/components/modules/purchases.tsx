@@ -365,7 +365,7 @@ export function PurchasesModule() {
               className="text-white"
               style={{
                 background:
-                  "linear-gradient(to bottom, #4DB6AC, #80CBC4)",
+                  "linear-gradient(to right, #1d4ed8, #1e40af 50%, #312e81)",
               }}
             >
               {[
