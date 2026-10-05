@@ -797,3 +797,17 @@ Work Log:
 
 Stage Summary:
 - The Brands list's table header now has a Royal Blue gradient background flowing from `blue-700` → `blue-800` → `indigo-900` (left to right) with bold white text. All other tables remain unchanged.
+
+---
+Task ID: BRAND-HEADER-WHITE-FONT-1
+Agent: main
+Task: Force the Brand list's header font color to White
+
+Work Log:
+- Root cause: the `<TableHead>` (`<th>`) component in `src/components/ui/table.tsx` has `text-foreground` baked into its base classes. The previous `text-white` on the parent `<TableRow>` (`<tr>`) was being overridden by the more specific `text-foreground` on each `<th>`, so the white text never actually rendered.
+- Fix: changed `headerRowClassName` in `src/components/modules/brands.tsx` to use descendant selectors that target the `<th>` children directly: `"bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 [&>th]:text-white [&>th]:font-bold"`. The `[&>th]:text-white` selector generates `tr > th { color: #fff }`, which has higher specificity than the bare `text-foreground` class on `<th>` and properly overrides it.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Brands list's table header now actually renders white bold text on top of the Royal Blue gradient background. The previous `text-white` on the parent `<tr>` was being silently overridden by `text-foreground` on the `<th>` — fixed by using `[&>th]:text-white` so the white color wins at the cell level.
