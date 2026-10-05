@@ -40,6 +40,10 @@ export async function POST(req: Request) {
         items: {
           create: items.map((it: Record<string, unknown>) => ({
             productId: it.productId ? String(it.productId) : null,
+            brand: it.brand ? String(it.brand) : null,
+            model: it.model ? String(it.model) : null,
+            serial: it.serial ? String(it.serial) : null,
+            condition: it.condition ? String(it.condition) : null,
             qty: Number(it.qty ?? 0),
             price: Number(it.price ?? 0),
             total: Number(it.total ?? 0),
@@ -97,6 +101,10 @@ export async function PUT(req: Request) {
           items: {
             create: items.map((it: Record<string, unknown>) => ({
               productId: it.productId ? String(it.productId) : null,
+              brand: it.brand ? String(it.brand) : null,
+              model: it.model ? String(it.model) : null,
+              serial: it.serial ? String(it.serial) : null,
+              condition: it.condition ? String(it.condition) : null,
               qty: Number(it.qty ?? 0),
               price: Number(it.price ?? 0),
               total: Number(it.total ?? 0),

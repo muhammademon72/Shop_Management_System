@@ -164,6 +164,10 @@ export interface SellItem {
   sellId?: string
   productId: string | null
   product?: Product | null
+  brand: string | null
+  model: string | null
+  serial: string | null
+  condition: string | null
   qty: number
   price: number
   total: number

@@ -211,6 +211,10 @@ model SellItem {
   sell      Sell     @relation(fields: [sellId], references: [id], onDelete: Cascade)
   productId String?
   product   Product? @relation(fields: [productId], references: [id])
+  brand     String?
+  model     String?
+  serial    String?
+  condition String?
   qty       Float   @default(0)
   price     Float   @default(0)
   total     Float   @default(0)

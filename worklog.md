@@ -708,3 +708,40 @@ Stage Summary:
   - Width: 1280px (was full viewport minus 2rem).
   - Height: 80vh (was 92vh).
 - The 9-column line items table still fits comfortably at 1280px. Content beyond 80vh height is scrollable inside the dialog (overflow-y-auto preserved).
+
+---
+Task ID: SALE-LAYOUT-1
+Agent: main
+Task: Redesign New Sale form — remove Header Remarks, restructure line items as Product / Brand / Model / Serial / Condition / Qty / Price / Total
+
+Work Log:
+- **Schema change** (`prisma/schema.prisma`): Updated `SellItem` model — added `brand`, `model`, `serial`, `condition` (all `String?`) before `qty`. Mirrors the `QuotationItem` shape. Ran `bun run db:push` — applied successfully (existing rows now have nulls for these new columns).
+- **Types** (`src/lib/types.ts`): Updated `SellItem` interface — added `brand`, `model`, `serial`, `condition` (all `string | null`).
+- **API** (`src/app/api/sells/route.ts`): Updated POST and PUT handlers — both now accept `brand`, `model`, `serial`, `condition` for each item.
+- **Module component** (`src/components/modules/sells.tsx`): Complete rewrite following the New Quotation form pattern:
+  - Added `brands` and `conditions` queries.
+  - Updated `ItemRow` interface — added `brand`, `model`, `serial`, `condition` (all `string`).
+  - Updated `newItem()` — initializes new fields as empty strings.
+  - Updated `saveMutation` — sends `brand`, `model`, `serial`, `condition` to the API; `total` correctly computed as `qty × price`.
+  - Updated `handleEdit` — loads `brand`, `model`, `serial`, `condition` from `row.items`.
+  - **Header section** (per user request): removed `Remarks` field — kept only Sell Date / Customer / Invoice No.
+  - **Line items table**: 8 columns + Actions, light-blue (#9DC3E6) header:
+    1. Product (SearchableSelect with search + category hint)
+    2. Brand (SearchableSelect with search)
+    3. Model (Input)
+    4. Serial (Input)
+    5. Condition (Select loaded from /api/conditions)
+    6. Qty (number Input, min=0, step=any)
+    7. Price (number Input)
+    8. Total (auto-calculated = Qty × Price)
+    9. Actions (X delete button)
+  - **Footer**: Total Amount row (spans 7 cols + value in black-bordered cell + Add Row button).
+  - **Totals section** (preserved existing Sale-specific logic): Total Price / Discount (input) / Grand Total / Paid Amount (input) / Due Amount.
+  - Form size changed from `xl` → `wide` (1280px) + `maxHeight="80vh"` to match the New Quotation form layout.
+  - Imported `SearchableSelect` and used it for Product and Brand dropdowns (searchable).
+- **View dialog** (also rewritten): 3-column header table (Sell Date / Customer / Discount / Invoice Number / Paid Amount / Due Amount) + 8-column line items table (Product / Brand / Model / Serial / Condition / Qty / Price / Total) + Total Amount footer. Same `size="wide"` + `maxHeight="80vh"`.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200 on / and /api/sells.
+
+Stage Summary:
+- New Sale form now mirrors the New Quotation form layout. Header has only Sell Date / Customer / Invoice No (Remarks removed per request). Line items table has 8 columns (Product, Brand, Model, Serial, Condition, Qty, Price, Total) + Actions, with light-blue header and Total Amount footer. Product and Brand are searchable dropdowns. The bottom totals section retains Sale-specific features (Discount input, Paid Amount input, Due Amount display). View dialog uses the same 8-column read-only format.

@@ -3,20 +3,12 @@
 import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Pencil, Plus, Trash2, Eye, FileText, X } from "lucide-react"
+import { Pencil, Plus, Trash2, Eye, FileText, X, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import {
   Select,
   SelectContent,
@@ -27,13 +19,18 @@ import {
 import { DataTable, type Column } from "@/components/data-table"
 import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
+import { SearchableSelect } from "@/components/searchable-select"
 import { PageHeader } from "@/components/page-header"
-import type { Sell, SellItem, Customer, Product } from "@/lib/types"
+import type { Sell, SellItem, Customer, Product, Brand, Condition } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
 
 interface ItemRow {
   id?: string
   productId: string | null
+  brand: string
+  model: string
+  serial: string
+  condition: string
   qty: string
   price: string
   total: number
@@ -53,6 +50,10 @@ interface SellForm {
 
 const newItem = (): ItemRow => ({
   productId: null,
+  brand: "",
+  model: "",
+  serial: "",
+  condition: "",
   qty: "1",
   price: "0",
   total: 0,
@@ -104,12 +105,34 @@ export function SellsModule() {
     },
   })
 
+  const { data: brands } = useQuery<Brand[]>({
+    queryKey: ["brands"],
+    queryFn: async () => {
+      const res = await fetch("/api/brands")
+      if (!res.ok) throw new Error("Failed")
+      return res.json()
+    },
+  })
+
+  const { data: conditions } = useQuery<Condition[]>({
+    queryKey: ["conditions"],
+    queryFn: async () => {
+      const res = await fetch("/api/conditions")
+      if (!res.ok) throw new Error("Failed")
+      return res.json()
+    },
+  })
+
   const saveMutation = useMutation({
     mutationFn: async (data: SellForm) => {
       const items = data.items
-        .filter((it) => it.productId || it.qty !== "0")
+        .filter((it) => it.productId || it.qty !== "0" || it.price !== "0")
         .map((it) => ({
           productId: it.productId || null,
+          brand: it.brand || null,
+          model: it.model || null,
+          serial: it.serial || null,
+          condition: it.condition || null,
           qty: Number(it.qty) || 0,
           price: Number(it.price) || 0,
           total: Number(it.qty || 0) * Number(it.price || 0),
@@ -208,6 +231,10 @@ export function SellsModule() {
       items: (row.items ?? []).map((it: SellItem) => ({
         id: it.id,
         productId: it.productId,
+        brand: it.brand ?? "",
+        model: it.model ?? "",
+        serial: it.serial ?? "",
+        condition: it.condition ?? "",
         qty: String(it.qty),
         price: String(it.price),
         total: it.total,
@@ -333,16 +360,19 @@ export function SellsModule() {
         searchPlaceholder="Search sales..."
       />
 
+      {/* === New Sale form — same layout pattern as New Quotation === */}
       <FormDialog
         open={open}
         onOpenChange={setOpen}
         title={form.id ? "Edit Sale" : "New Sale"}
-        size="xl"
+        size="wide"
+        maxHeight="80vh"
         onSubmit={handleSubmit}
         loading={saveMutation.isPending}
         submitLabel={form.id ? "Update" : "Save Sale"}
       >
-        <div className="rounded-md border p-3">
+        {/* === Header section === */}
+        <div className="rounded-md border border-gray-300 bg-white p-3">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
             <FileText className="h-4 w-4" /> Header
           </div>
@@ -383,110 +413,115 @@ export function SellsModule() {
                 onChange={(e) => setForm({ ...form, invoiceNo: e.target.value })}
               />
             </div>
-            <div className="grid gap-1 sm:col-span-3">
-              <Label className="text-xs">Remarks</Label>
-              <Input
-                value={form.remarks}
-                onChange={(e) => setForm({ ...form, remarks: e.target.value })}
-              />
-            </div>
           </div>
         </div>
 
-        <div className="rounded-md border">
-          <div className="flex items-center justify-between border-b p-3">
+        {/* === Line items table — 8 columns + Actions === */}
+        <div className="rounded-md border border-gray-300 bg-white p-3">
+          <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-medium">
               <FileText className="h-4 w-4" /> Line Items ({totalItems})
             </div>
-            <Button type="button" size="sm" onClick={addItem} variant="outline">
-              <Plus className="h-4 w-4" /> Add Row
-            </Button>
           </div>
-          <div className="max-h-80 overflow-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/40 hover:bg-muted/40">
-                  <TableHead className="min-w-[200px]">Product</TableHead>
-                  <TableHead className="min-w-[80px]">Qty</TableHead>
-                  <TableHead className="min-w-[100px]">Price</TableHead>
-                  <TableHead className="min-w-[100px]">Total</TableHead>
-                  <TableHead className="min-w-[160px]">Remarks</TableHead>
-                  <TableHead className="w-10" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <div className="overflow-auto rounded-md border border-gray-300">
+            <table className="w-full border-collapse text-xs">
+              <thead>
+                <tr style={{ background: "#9DC3E6" }} className="text-black">
+                  {["Product", "Brand", "Model", "Serial", "Condition", "Qty", "Price", "Total", "Actions"].map((h) => (
+                    <th key={h} className="border border-gray-400 px-2 py-1.5 text-center font-bold whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
                 {form.items.map((it, idx) => {
-                  const total =
-                    (Number(it.qty) || 0) * (Number(it.price) || 0)
+                  const total = (Number(it.qty) || 0) * (Number(it.price) || 0)
                   return (
-                    <TableRow key={idx}>
-                      <TableCell>
+                    <tr key={idx} className="bg-white hover:bg-gray-50">
+                      <td className="border border-gray-300 p-1">
+                        <SearchableSelect
+                          value={it.productId}
+                          onValueChange={(v) => updateItem(idx, { productId: v ?? "" })}
+                          options={(products ?? []).map((p) => ({ value: p.id, label: p.name, hint: p.category?.name }))}
+                          placeholder="Select"
+                          searchPlaceholder="Search product..."
+                          emptyText="No product found."
+                          allowNone
+                          noneLabel="— None —"
+                          compact
+                          triggerClassName="min-w-[140px]"
+                        />
+                      </td>
+                      <td className="border border-gray-300 p-1">
+                        <SearchableSelect
+                          value={it.brand || null}
+                          onValueChange={(v) => updateItem(idx, { brand: v ?? "" })}
+                          options={(brands ?? []).map((b) => ({ value: b.name, label: b.name }))}
+                          placeholder="—"
+                          searchPlaceholder="Search brand..."
+                          emptyText="No brand found."
+                          allowNone
+                          noneLabel="—"
+                          compact
+                          triggerClassName="min-w-[100px]"
+                        />
+                      </td>
+                      <td className="border border-gray-300 p-1">
+                        <Input value={it.model} onChange={(e) => updateItem(idx, { model: e.target.value })} className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0" />
+                      </td>
+                      <td className="border border-gray-300 p-1">
+                        <Input value={it.serial} onChange={(e) => updateItem(idx, { serial: e.target.value })} className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0" />
+                      </td>
+                      <td className="border border-gray-300 p-1">
                         <Select
-                          value={it.productId ?? "none"}
-                          onValueChange={(v) =>
-                            updateItem(idx, { productId: v === "none" ? null : v })
-                          }
+                          value={it.condition || "none"}
+                          onValueChange={(v) => updateItem(idx, { condition: v === "none" ? "" : v })}
                         >
-                          <SelectTrigger className="w-full min-w-[200px]">
-                            <SelectValue placeholder="Select" />
+                          <SelectTrigger className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus:ring-0">
+                            <SelectValue placeholder="—" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">— None —</SelectItem>
-                            {(products ?? []).map((p) => (
-                              <SelectItem key={p.id} value={p.id}>
-                                {p.name}
-                              </SelectItem>
+                            <SelectItem value="none">—</SelectItem>
+                            {(conditions ?? []).map((c) => (
+                              <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={it.qty}
-                          onChange={(e) => updateItem(idx, { qty: e.target.value })}
-                          className="min-w-[80px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={it.price}
-                          onChange={(e) => updateItem(idx, { price: e.target.value })}
-                          className="min-w-[100px]"
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">
+                      </td>
+                      <td className="border border-gray-300 p-1">
+                        <Input type="number" min="0" step="any" value={it.qty} onChange={(e) => updateItem(idx, { qty: e.target.value })} className="h-8 min-w-[60px] border-0 bg-transparent px-1 text-xs text-center focus-visible:ring-0" />
+                      </td>
+                      <td className="border border-gray-300 p-1">
+                        <Input type="number" value={it.price} onChange={(e) => updateItem(idx, { price: e.target.value })} className="h-8 min-w-[80px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0" />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1 text-right font-medium">
                         {formatCurrency(total)}
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={it.remarks}
-                          onChange={(e) => updateItem(idx, { remarks: e.target.value })}
-                          className="min-w-[160px]"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => removeItem(idx)}
-                          className="text-destructive hover:text-destructive"
-                          title="Remove"
-                        >
-                          <X className="h-4 w-4" />
+                      </td>
+                      <td className="border border-gray-300 p-1 text-center">
+                        <Button type="button" size="icon" variant="ghost" onClick={() => removeItem(idx)} className="h-7 w-7 text-destructive hover:text-destructive" title="Delete row">
+                          <X className="h-3.5 w-3.5" />
                         </Button>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   )
                 })}
-              </TableBody>
-            </Table>
+              </tbody>
+              <tfoot>
+                <tr className="bg-gray-50">
+                  <td colSpan={7} className="border border-gray-300 px-3 py-2 text-right font-bold">Total Amount:</td>
+                  <td className="border-2 border-black px-2 py-2 text-right font-bold">{formatCurrency(totalPrice)}</td>
+                  <td className="border border-gray-300 px-2 py-2 text-center">
+                    <Button type="button" size="sm" onClick={addItem} variant="outline">
+                      <Plus className="h-3.5 w-3.5" /> Add Row
+                    </Button>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 rounded-md border p-3 sm:grid-cols-3">
+        {/* === Totals section === */}
+        <div className="grid grid-cols-2 gap-3 rounded-md border border-gray-300 bg-white p-3 sm:grid-cols-3">
           <div className="grid gap-1">
             <Label className="text-xs">Total Price</Label>
             <div className="text-lg font-bold">{formatCurrency(totalPrice)}</div>
@@ -522,77 +557,79 @@ export function SellsModule() {
         </div>
       </FormDialog>
 
+      {/* === View dialog === */}
       <FormDialog
         open={!!viewing}
         onOpenChange={(o) => !o && setViewing(null)}
         title={`Sale ${viewing?.invoiceNo ?? ""}`}
-        size="lg"
+        size="wide"
+        maxHeight="80vh"
         hideFooter
-        footer={
-          <Button variant="outline" onClick={() => setViewing(null)}>
-            Close
-          </Button>
-        }
+        footer={<Button variant="outline" onClick={() => setViewing(null)}>Close</Button>}
       >
         {viewing && (
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <div>
-                <div className="text-muted-foreground text-xs">Date</div>
-                <div className="font-medium">{formatDate(viewing.sellDate)}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Customer</div>
-                <div className="font-medium">
-                  {viewing.customer?.name ?? "—"}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Invoice No</div>
-                <div className="font-medium">{viewing.invoiceNo}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Grand Total</div>
-                <div className="text-emerald-600 font-bold">
-                  {formatCurrency(viewing.grandTotal)}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Paid</div>
-                <div className="font-medium">
-                  {formatCurrency(viewing.paidAmount)}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Due</div>
-                <div className="text-rose-600 font-bold">
-                  {formatCurrency(viewing.dueAmount)}
-                </div>
-              </div>
+          <div className="flex flex-col gap-3">
+            <div className="rounded-md border border-gray-300 bg-white">
+              <table className="w-full border-collapse text-sm">
+                <tbody>
+                  <tr>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">Sell Date:</td>
+                    <td className="border border-gray-300 px-2 py-1.5">{formatDate(viewing.sellDate)}</td>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">Invoice Number:</td>
+                    <td className="border border-gray-300 px-2 py-1.5 font-medium">{viewing.invoiceNo}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">Customer Name:</td>
+                    <td className="border border-gray-300 px-2 py-1.5">{viewing.customer?.name ?? "—"}</td>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">Discount Amount:</td>
+                    <td className="border border-gray-300 px-2 py-1.5">{formatCurrency(viewing.discount)}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">Paid Amount:</td>
+                    <td className="border border-gray-300 px-2 py-1.5">{formatCurrency(viewing.paidAmount)}</td>
+                    <td className="border border-gray-300 bg-gray-100 px-3 py-1.5 font-semibold whitespace-nowrap">Due Amount:</td>
+                    <td className="border border-gray-300 px-2 py-1.5 text-rose-600 font-medium">{formatCurrency(viewing.dueAmount)}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40 hover:bg-muted/40">
-                    <TableHead>Product</TableHead>
-                    <TableHead>Qty</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(viewing.items ?? []).map((it) => (
-                    <TableRow key={it.id}>
-                      <TableCell>{it.product?.name ?? "—"}</TableCell>
-                      <TableCell>{it.qty}</TableCell>
-                      <TableCell>{formatCurrency(it.price)}</TableCell>
-                      <TableCell className="font-medium">
-                        {formatCurrency(it.total)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+
+            <div className="overflow-auto rounded-md border border-gray-300 bg-white">
+              <table className="w-full border-collapse text-xs">
+                <thead>
+                  <tr style={{ background: "#9DC3E6" }} className="text-black">
+                    {["Product", "Brand", "Model", "Serial", "Condition", "Qty", "Price", "Total"].map((h) => (
+                      <th key={h} className="border border-gray-400 px-2 py-1.5 text-center font-bold whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(viewing.items ?? []).length === 0 ? (
+                    <tr><td colSpan={8} className="border border-gray-300 px-3 py-6 text-center text-muted-foreground">No line items.</td></tr>
+                  ) : (
+                    (viewing.items ?? []).map((it, idx) => (
+                      <tr key={it.id ?? idx} className="bg-white">
+                        <td className="border border-gray-300 px-2 py-1 font-medium">{it.product?.name ?? "—"}</td>
+                        <td className="border border-gray-300 px-2 py-1">{it.brand ?? "—"}</td>
+                        <td className="border border-gray-300 px-2 py-1">{it.model ?? "—"}</td>
+                        <td className="border border-gray-300 px-2 py-1 font-mono">{it.serial ?? "—"}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{it.condition ?? "—"}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{it.qty ?? "—"}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-right">{formatCurrency(it.price)}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-right font-medium">{formatCurrency(it.total)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+                {viewing.items && viewing.items.length > 0 && (
+                  <tfoot>
+                    <tr className="bg-gray-50">
+                      <td colSpan={7} className="border border-gray-300 px-3 py-2 text-right font-bold">Total Amount:</td>
+                      <td className="border-2 border-black px-2 py-2 text-right font-bold">{formatCurrency(viewing.grandTotal)}</td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
             </div>
           </div>
         )}
