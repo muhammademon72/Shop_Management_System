@@ -234,26 +234,6 @@ export function InventoryModule() {
         </span>
       ),
     },
-    {
-      key: "actions",
-      header: "Actions",
-      cell: (row) => (
-        <div className="flex items-center gap-1">
-          <Button size="icon" variant="ghost" onClick={() => handleEdit(row)} title="Edit">
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setDeletingId(row.id)}
-            title="Delete"
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
   ]
 
   return (
@@ -261,11 +241,6 @@ export function InventoryModule() {
       <PageHeader
         title="Inventory Stock"
         description="Track stock movements and current inventory."
-        actions={
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4" /> Add Stock
-          </Button>
-        }
       />
 
       <DataTable

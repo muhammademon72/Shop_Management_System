@@ -978,3 +978,18 @@ Work Log:
 
 Stage Summary:
 - The Add Stock form's Product and Brand fields are now searchable dropdowns. Product shows the product name + category hint, Brand shows brand names. Both support typing to search and a "— None —" / "—" option to clear. Selecting a Product still auto-fills Brand / Model / Serial / UOM from the product master record (existing behavior preserved).
+
+---
+Task ID: INVENTORY-REMOVE-ACTIONS-1
+Agent: main
+Task: Remove the "Add Stock" button and the "Actions" column from the Inventory Stock list page
+
+Work Log:
+- Removed the `actions` prop (the `<Button onClick={handleAdd}>… Add Stock</Button>`) from `<PageHeader>` in `src/components/modules/inventory.tsx`. The header now just shows the title + description, no top-right button.
+- Removed the entire "Actions" column from the `columns: Column<InventoryStock>[]` array — the column that rendered Edit (Pencil) and Delete (Trash2) icon buttons per row.
+- Kept the `<FormDialog>`, `handleAdd`, `handleEdit`, `setEditing`, `setDeletingId`, and the `<ConfirmDialog>` intact in the source — they are no longer reachable from the UI (no buttons to open the form/dialog) but remain in the code so re-enabling the Add Stock flow later is a one-line change (re-add the `actions={<Button onClick={handleAdd}>…</Button>}` prop to PageHeader and re-add the Actions column). Lint didn't flag them as unused because they're still wired to internal handlers.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Inventory Stock list page now shows the inventory records in a read-only table without the "Add Stock" button at the top and without the "Actions" (Edit/Delete) column at the end. The list displays Date / Invoice / Product / Brand / Model / Serial / Qty / UOM / Remarks. The Royal Blue gradient header style applied previously is preserved. The underlying Add Stock form, edit/delete handlers, and confirm dialog remain in the source for easy re-enabling.
