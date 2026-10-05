@@ -1094,3 +1094,21 @@ Stage Summary:
   - LEFT: large bold "Brands" label + "Add Brand" button.
   - Then: the search box ("Search brands...").
 - Layout: stacks vertically on small screens, single row on sm+ screens. Other DataTable callers are unaffected (searchLeftAddon is optional and defaults to undefined).
+
+---
+Task ID: BRAND-ADD-RIGHT-1
+Agent: main
+Task: Move the "Add Brand" button to the RIGHT side of the search box in the Brand List (was previously on the LEFT with the Brands label)
+
+Work Log:
+- Reorganized the Brand List row in `src/components/modules/brands.tsx`:
+  - **searchLeftAddon**: kept only the `<span>Brands</span>` label (removed the "Add Brand" button that was previously bundled inside `searchLeftAddon` next to the label).
+  - **toolbar**: moved the `<Button onClick={handleAdd}><Plus /> Add Brand</Button>` to the DataTable's existing `toolbar` prop. DataTable's existing layout uses `sm:justify-between` between the left side (addon + search input) and the toolbar, so the toolbar naturally renders to the RIGHT of the search input on sm+ screens.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Brand List top row now shows (left-to-right on sm+ screens):
+  - LEFT: large bold "Brands" label → search input ("Search brands...")
+  - RIGHT: "Add Brand" button
+- Stacks vertically on small screens. Other DataTable-based modules are unaffected.
