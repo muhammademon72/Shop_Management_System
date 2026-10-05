@@ -959,3 +959,22 @@ Work Log:
 
 Stage Summary:
 - The Customers list's table header now has the same Royal Blue gradient and bold white text. ALL TWELVE list pages now share the consistent Royal Blue gradient header style: Brands, Categories, UOMs, Products, Conditions, Warranties, Purchases, Suppliers, Inventory, Quotations, Sales, Customers. Complete consistency across the entire app.
+
+---
+Task ID: INVENTORY-SEARCHABLE-1
+Agent: main
+Task: Add Search to Product dropdown and Brand dropdown in Add Stock form
+
+Work Log:
+- Inspected `src/components/modules/inventory.tsx`: the Add Stock form's Product was using a plain `<Select>` (no search) and Brand was a plain `<Input>` (free-text).
+- Imports: added `SearchableSelect` from `@/components/searchable-select` and added `Brand` to the type imports.
+- Added a new `brands` query (fetches `/api/brands`) — same pattern as the existing `products` and `uoms` queries.
+- Refactored `handleProductChange` to accept `pid?: string` (SearchableSelect's `onValueChange` passes `string | undefined` instead of always a string).
+- Added a new `handleBrandChange` helper that updates `editing.brand` from the SearchableSelect value.
+- Replaced the Product `<Select>` (lines 298-316) with `<SearchableSelect>` — value=productId, options=products (with category hint), searchable, allowNone.
+- Replaced the Brand `<Input>` (line 319-324) with `<SearchableSelect>` — value=brand, options=brands, searchable, allowNone.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled. Inventory API, Products API, Brands API all return 200.
+
+Stage Summary:
+- The Add Stock form's Product and Brand fields are now searchable dropdowns. Product shows the product name + category hint, Brand shows brand names. Both support typing to search and a "— None —" / "—" option to clear. Selecting a Product still auto-fills Brand / Model / Serial / UOM from the product master record (existing behavior preserved).

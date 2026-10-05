@@ -19,8 +19,9 @@ import {
 import { DataTable, type Column } from "@/components/data-table"
 import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
+import { SearchableSelect } from "@/components/searchable-select"
 import { PageHeader } from "@/components/page-header"
-import type { InventoryStock, Product, Uom } from "@/lib/types"
+import type { InventoryStock, Product, Uom, Brand } from "@/lib/types"
 import { formatDate, toInputDate } from "@/lib/format"
 
 interface FormState {
@@ -77,6 +78,15 @@ export function InventoryModule() {
     queryKey: ["uoms"],
     queryFn: async () => {
       const res = await fetch("/api/uoms")
+      if (!res.ok) throw new Error("Failed")
+      return res.json()
+    },
+  })
+
+  const { data: brands } = useQuery<Brand[]>({
+    queryKey: ["brands"],
+    queryFn: async () => {
+      const res = await fetch("/api/brands")
       if (!res.ok) throw new Error("Failed")
       return res.json()
     },
@@ -172,7 +182,7 @@ export function InventoryModule() {
     saveMutation.mutate(editing)
   }
 
-  const handleProductChange = (pid: string) => {
+  const handleProductChange = (pid?: string) => {
     if (!editing) return
     const product = (products ?? []).find((p) => p.id === pid)
     setEditing({
@@ -183,6 +193,11 @@ export function InventoryModule() {
       serial: product?.serial ?? editing.serial,
       uom: product?.uom?.name ?? editing.uom,
     })
+  }
+
+  const handleBrandChange = (v?: string) => {
+    if (!editing) return
+    setEditing({ ...editing, brand: v ?? "" })
   }
 
   const columns: Column<InventoryStock>[] = [
@@ -297,30 +312,28 @@ export function InventoryModule() {
           </div>
           <div className="grid gap-2 sm:col-span-2">
             <Label>Product</Label>
-            <Select
-              value={editing?.productId ?? "none"}
+            <SearchableSelect
+              value={editing?.productId ?? null}
               onValueChange={handleProductChange}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select product" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">— None —</SelectItem>
-                {(products ?? []).map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={(products ?? []).map((p) => ({ value: p.id, label: p.name, hint: p.category?.name }))}
+              placeholder="Select product"
+              searchPlaceholder="Search product..."
+              emptyText="No product found."
+              allowNone
+              noneLabel="— None —"
+            />
           </div>
           <div className="grid gap-2">
             <Label>Brand</Label>
-            <Input
-              value={editing?.brand ?? ""}
-              onChange={(e) =>
-                setEditing({ ...editing!, brand: e.target.value })
-              }
+            <SearchableSelect
+              value={editing?.brand || null}
+              onValueChange={handleBrandChange}
+              options={(brands ?? []).map((b) => ({ value: b.name, label: b.name }))}
+              placeholder="—"
+              searchPlaceholder="Search brand..."
+              emptyText="No brand found."
+              allowNone
+              noneLabel="—"
             />
           </div>
           <div className="grid gap-2">
