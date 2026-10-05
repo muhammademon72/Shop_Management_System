@@ -29,7 +29,6 @@ import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { SearchableSelect } from "@/components/searchable-select"
 import { FileUpload } from "@/components/file-upload"
-import { PageHeader } from "@/components/page-header"
 import type { Purchase, PurchaseItem, Supplier, Product, Brand, Condition, Warranty } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
 
@@ -337,22 +336,26 @@ export function PurchasesModule() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader
-        title="Purchases"
-        description="Record purchases from suppliers with line items."
-      />
+      {/* Page title + description */}
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Purchases</h2>
+        <p className="text-muted-foreground text-sm">Record purchases from suppliers with line items.</p>
+      </div>
 
-      {/* Search box on the LEFT, New Purchase button on the RIGHT — same row */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      {/* Purchases label on the LEFT of the search box, New Purchase button on the RIGHT — same row */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+        <span className="text-sm font-semibold whitespace-nowrap">Purchases</span>
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search purchases..."
           className="max-w-sm"
         />
-        <Button onClick={handleAdd}>
-          <Plus className="h-4 w-4" /> New Purchase
-        </Button>
+        <div className="sm:ml-auto">
+          <Button onClick={handleAdd}>
+            <Plus className="h-4 w-4" /> New Purchase
+          </Button>
+        </div>
       </div>
 
       {/* Custom Purchase List table — matches the user-uploaded photo */}

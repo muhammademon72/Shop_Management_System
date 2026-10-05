@@ -1009,3 +1009,27 @@ Work Log:
 
 Stage Summary:
 - The Purchase List page now has the search box on the left and the "New Purchase" button on the right in the same row (just below the page header, above the table). Responsive: stacks vertically on small screens (flex-col), horizontal on sm+ screens.
+
+---
+Task ID: PURCHASE-LABEL-LEFT-1
+Agent: main
+Task: Add a "Purchases" label on the LEFT side of the search box in the Purchase List
+
+Work Log:
+- Restructured the top of `src/components/modules/purchases.tsx`:
+  - Removed the `<PageHeader>` component (no longer fits the new layout — replaced with a custom title block).
+  - Added a title block: `<h2>Purchases</h2>` + muted description paragraph.
+  - Added the search/action row: a flex row with three children:
+    1. `<span className="text-sm font-semibold whitespace-nowrap">Purchases</span>` — the requested label on the LEFT of the search box.
+    2. `<Input className="max-w-sm" placeholder="Search purchases...">` — the search box in the MIDDLE.
+    3. `<div className="sm:ml-auto"><Button onClick={handleAdd}><Plus /> New Purchase</Button></div>` — the New Purchase button pushed to the RIGHT via `sm:ml-auto`.
+  - Row layout: `flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3` — responsive (stacks on small screens, single row on sm+).
+- Removed the now-unused `import { PageHeader }` line.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Purchase List page top now shows:
+  - Page title block: "Purchases" + description.
+  - Action row (one line, left-to-right): **Purchases** (label) → [Search purchases... input] → …… → **New Purchase** button (right-aligned).
+- Responsive: collapses to vertical stack on small screens.
