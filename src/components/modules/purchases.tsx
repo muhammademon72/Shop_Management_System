@@ -340,21 +340,19 @@ export function PurchasesModule() {
       <PageHeader
         title="Purchases"
         description="Record purchases from suppliers with line items."
-        actions={
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4" /> New Purchase
-          </Button>
-        }
       />
 
-      {/* Search box (kept above the custom table) */}
-      <div className="flex items-center gap-2">
+      {/* Search box on the LEFT, New Purchase button on the RIGHT — same row */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search purchases..."
           className="max-w-sm"
         />
+        <Button onClick={handleAdd}>
+          <Plus className="h-4 w-4" /> New Purchase
+        </Button>
       </div>
 
       {/* Custom Purchase List table — matches the user-uploaded photo */}

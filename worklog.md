@@ -993,3 +993,19 @@ Work Log:
 
 Stage Summary:
 - The Inventory Stock list page now shows the inventory records in a read-only table without the "Add Stock" button at the top and without the "Actions" (Edit/Delete) column at the end. The list displays Date / Invoice / Product / Brand / Model / Serial / Qty / UOM / Remarks. The Royal Blue gradient header style applied previously is preserved. The underlying Add Stock form, edit/delete handlers, and confirm dialog remain in the source for easy re-enabling.
+
+---
+Task ID: PURCHASE-SEARCH-NEW-LAYOUT-1
+Agent: main
+Task: Move the "New Purchase" button to the right side of the search box in the Purchase List
+
+Work Log:
+- Removed the `actions={<Button onClick={handleAdd}>… New Purchase</Button>}` prop from `<PageHeader>` in `src/components/modules/purchases.tsx` — so the top-right "New Purchase" button is gone from the page header.
+- Refactored the search section below the header into a flex row: `<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">` containing:
+  - Left: the search `<Input>` (with `max-w-sm` and `placeholder="Search purchases..."`).
+  - Right: `<Button onClick={handleAdd}><Plus /> New Purchase</Button>` — moved from the header to here, aligned to the right via `sm:justify-between`.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Purchase List page now has the search box on the left and the "New Purchase" button on the right in the same row (just below the page header, above the table). Responsive: stacks vertically on small screens (flex-col), horizontal on sm+ screens.
