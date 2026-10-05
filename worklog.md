@@ -1033,3 +1033,16 @@ Stage Summary:
   - Page title block: "Purchases" + description.
   - Action row (one line, left-to-right): **Purchases** (label) → [Search purchases... input] → …… → **New Purchase** button (right-aligned).
 - Responsive: collapses to vertical stack on small screens.
+
+---
+Task ID: PURCHASE-LABEL-BOLD-1
+Agent: main
+Task: Make the "Purchases" label bold
+
+Work Log:
+- Updated `src/components/modules/purchases.tsx` line 347: changed the "Purchases" label span from `font-semibold` → `font-bold`.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The "Purchases" label to the left of the search box is now fully bold (`font-bold`), was previously semibold (`font-semibold`).

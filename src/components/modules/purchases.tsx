@@ -344,7 +344,7 @@ export function PurchasesModule() {
 
       {/* Purchases label on the LEFT of the search box, New Purchase button on the RIGHT — same row */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-        <span className="text-sm font-semibold whitespace-nowrap">Purchases</span>
+        <span className="text-sm font-bold whitespace-nowrap">Purchases</span>
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
