@@ -1046,3 +1046,16 @@ Work Log:
 
 Stage Summary:
 - The "Purchases" label to the left of the search box is now fully bold (`font-bold`), was previously semibold (`font-semibold`).
+
+---
+Task ID: PURCHASE-LABEL-BIGGER-1
+Agent: main
+Task: Increase the "Purchases" label size by 3 sizes
+
+Work Log:
+- Updated `src/components/modules/purchases.tsx` line 347: changed "Purchases" label from `text-sm font-bold` → `text-xl font-bold`. That's 3 size steps up (sm → base → lg → xl).
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The "Purchases" label is now `text-xl` (20px) bold — was `text-sm` (14px). 3 sizes bigger.
