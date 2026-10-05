@@ -892,3 +892,16 @@ Work Log:
 
 Stage Summary:
 - The Purchase list's table header now uses a Royal Blue gradient (`blue-700 → blue-800 → indigo-900` going left-to-right) with bold white text, matching the style applied to Brands / Categories / UOMs / Products / Conditions / Warranties. Seven modules now share the consistent header style. Note: this module uses an inline table (not the shared DataTable) so the change was made directly to the `<tr style>` inline gradient, not via the `headerRowClassName` prop.
+
+---
+Task ID: SUPPLIER-HEADER-GRADIENT-1
+Agent: main
+Task: Apply Royal Blue gradient + white font to Suppliers list's header
+
+Work Log:
+- Updated `src/components/modules/suppliers.tsx`: added `headerRowClassName="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 [&>th]:text-white [&>th]:font-bold"` to the `<DataTable>`.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Suppliers list's table header now has the same Royal Blue gradient and bold white text. Eight modules share the consistent style: Brands, Categories, UOMs, Products, Conditions, Warranties, Purchases, Suppliers.
