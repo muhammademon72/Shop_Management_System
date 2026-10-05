@@ -619,3 +619,22 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - The New Quotation form's header section now matches the user-uploaded reference photo: company info on the left (name, address, phone, email, website from CompanyProfile), "QUOTATION" title + Quotation No / Date / Validity on the right, "CLIENT DETAILS" section (purple header) below with client name/searchable select, contact, address, discount, and note. The line items table (8 columns + Actions) and footer remain unchanged.
+
+---
+Task ID: RESTORE-1
+Agent: main
+Task: Restore workspace from uploaded tar archive (workspace-47a72157-9a51-4381-9ae5-9d772b3af8e8.tar)
+
+Work Log:
+- Verified uploaded tar archive at /home/z/my-project/upload/ (7.4MB gzipped, 924 entries).
+- Listed archive contents: Next.js + Prisma + SQLite project (Shop Management System) with .git history, src/, prisma/, public/uploads, db/custom.db, .env, etc.
+- Extracted archive to /home/z/my-project/ with `tar -xzf`. All files restored cleanly; .git history intact on `main` branch.
+- Verified git status (clean except for the uploaded tar in upload/, which is gitignored).
+- Confirmed .env: DATABASE_URL=file:/home/z/my-project/db/custom.db (SQLite).
+- Installed dependencies via `bun install` — 830 packages installed successfully (Next.js 16.1.3, React 19.2.3, Prisma 6.19.2, shadcn/ui, etc.).
+- Generated Prisma Client via `bun run db:generate` — success.
+- Verified SQLite DB file exists at db/custom.db (168KB, contains existing data).
+- Ran `bun run lint` — clean (0 errors, 0 warnings).
+
+Stage Summary:
+- Workspace successfully restored from tar archive. Project is ready to run with `bun run dev` (Next.js dev server on port 3000). All dependencies installed, Prisma client generated, SQLite database intact with previous data (quotations, purchases, products, brands, categories, etc.). Git history preserved on `main` branch.
