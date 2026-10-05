@@ -148,6 +148,7 @@ export function BrandsModule() {
         searchText={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search brands..."
+        headerRowClassName="bg-teal-200 hover:bg-teal-200 text-teal-950 font-bold"
       />
 
       <FormDialog

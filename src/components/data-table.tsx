@@ -36,6 +36,8 @@ interface DataTableProps<T> {
   emptyDescription?: string
   footer?: React.ReactNode
   className?: string
+  /** Optional class override for the header <TableRow>. Default: "bg-muted/40 hover:bg-muted/40". */
+  headerRowClassName?: string
 }
 
 export function DataTable<T>({
@@ -52,6 +54,7 @@ export function DataTable<T>({
   emptyDescription = "Try adjusting your search or add a new record.",
   footer,
   className,
+  headerRowClassName,
 }: DataTableProps<T>) {
   const [internalSearch, setInternalSearch] = React.useState("")
   const isControlled = searchText !== undefined && onSearchChange !== undefined
@@ -89,7 +92,7 @@ export function DataTable<T>({
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40">
+            <TableRow className={headerRowClassName ?? "bg-muted/40 hover:bg-muted/40"}>
               {columns.map((col) => (
                 <TableHead key={col.key} className={col.className}>
                   {col.header}

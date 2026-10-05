@@ -745,3 +745,21 @@ Work Log:
 
 Stage Summary:
 - New Sale form now mirrors the New Quotation form layout. Header has only Sell Date / Customer / Invoice No (Remarks removed per request). Line items table has 8 columns (Product, Brand, Model, Serial, Condition, Qty, Price, Total) + Actions, with light-blue header and Total Amount footer. Product and Brand are searchable dropdowns. The bottom totals section retains Sale-specific features (Discount input, Paid Amount input, Due Amount display). View dialog uses the same 8-column read-only format.
+
+---
+Task ID: BRAND-HEADER-TEAL-1
+Agent: main
+Task: Change Brand list's header background color to Teal
+
+Work Log:
+- Inspected `src/components/data-table.tsx`: the header row's background was hardcoded as `bg-muted/40 hover:bg-muted/40` on `<TableRow>` — no way to override per-table.
+- Added a new optional prop `headerRowClassName?: string` to `DataTableProps` in `data-table.tsx`. When provided, it replaces the default `bg-muted/40 hover:bg-muted/40` (uses `??` fallback so existing callers are unaffected).
+- Updated `src/components/modules/brands.tsx`: passed `headerRowClassName="bg-teal-200 hover:bg-teal-200 text-teal-950 font-bold"` to the `<DataTable>`.
+  - `bg-teal-200` (#5EEAD4) — soft, recognizable teal header background.
+  - `text-teal-950` — high-contrast dark teal text on the light teal background.
+  - `font-bold` — emphasises header row.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Brands list's table header now has a teal background (Tailwind `bg-teal-200`) with dark teal bold text. The change is scoped to the Brands module only — all other tables retain their default gray header. The DataTable now supports a `headerRowClassName` prop so any module can customize its header color in the future without touching shared code.
