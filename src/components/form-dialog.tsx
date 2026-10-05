@@ -22,6 +22,8 @@ interface FormDialogProps {
   cancelLabel?: string
   loading?: boolean
   size?: "sm" | "md" | "lg" | "xl" | "wide" | "full"
+  /** Max height of the dialog (CSS value). Defaults to "92vh". */
+  maxHeight?: string
   footer?: React.ReactNode
   hideFooter?: boolean
   children: React.ReactNode
@@ -50,6 +52,7 @@ export function FormDialog({
   cancelLabel = "Cancel",
   loading = false,
   size = "md",
+  maxHeight = "92vh",
   footer,
   hideFooter = false,
   children,
@@ -61,7 +64,7 @@ export function FormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${sizeMap[size]} max-h-[92vh] overflow-y-auto`}>
+      <DialogContent className={`${sizeMap[size]}`} style={{ maxHeight, overflowY: "auto" }}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}

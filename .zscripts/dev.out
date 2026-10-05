@@ -256,3 +256,32 @@ prisma:query SELECT `main`.`CompanyProfile`.`id`, `main`.`CompanyProfile`.`name`
 ✓ Compiled in 140ms
 ✓ Compiled in 179ms
  GET / 200 in 269ms (compile: 64ms, render: 206ms)
+ GET / 200 in 123ms (compile: 6ms, render: 118ms)
+ GET / 200 in 54ms (compile: 2ms, render: 52ms)
+✓ Compiled in 131ms
+✓ Compiled in 116ms
+✓ Compiled in 136ms
+prisma:query SELECT 1
+prisma:query SELECT `main`.`Customer`.`id`, `main`.`Customer`.`name`, `main`.`Customer`.`mobile`, `main`.`Customer`.`address`, `main`.`Customer`.`status`, `main`.`Customer`.`createdAt`, `main`.`Customer`.`updatedAt` FROM `main`.`Customer` WHERE 1=1 ORDER BY `main`.`Customer`.`createdAt` DESC LIMIT ? OFFSET ?
+ GET /api/customers 200 in 9ms (compile: 4ms, render: 5ms)
+ GET /api/quotations 200 in 9ms (compile: 2ms, render: 6ms)
+prisma:query SELECT `main`.`Quotation`.`id`, `main`.`Quotation`.`quotationDate`, `main`.`Quotation`.`customerId`, `main`.`Quotation`.`invoiceNo`, `main`.`Quotation`.`totalPrice`, `main`.`Quotation`.`discount`, `main`.`Quotation`.`grandTotal`, `main`.`Quotation`.`remarks`, `main`.`Quotation`.`createdAt`, `main`.`Quotation`.`updatedAt` FROM `main`.`Quotation` WHERE 1=1 ORDER BY `main`.`Quotation`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Customer`.`id`, `main`.`Customer`.`name`, `main`.`Customer`.`mobile`, `main`.`Customer`.`address`, `main`.`Customer`.`status`, `main`.`Customer`.`createdAt`, `main`.`Customer`.`updatedAt` FROM `main`.`Customer` WHERE `main`.`Customer`.`id` IN (?,?,?,?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`QuotationItem`.`id`, `main`.`QuotationItem`.`quotationId`, `main`.`QuotationItem`.`productId`, `main`.`QuotationItem`.`brand`, `main`.`QuotationItem`.`model`, `main`.`QuotationItem`.`serial`, `main`.`QuotationItem`.`condition`, `main`.`QuotationItem`.`warrantyText`, `main`.`QuotationItem`.`qty`, `main`.`QuotationItem`.`price`, `main`.`QuotationItem`.`total`, `main`.`QuotationItem`.`remarks` FROM `main`.`QuotationItem` WHERE `main`.`QuotationItem`.`quotationId` IN (?,?,?,?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Product`.`id`, `main`.`Product`.`name`, `main`.`Product`.`categoryId`, `main`.`Product`.`brandId`, `main`.`Product`.`uomId`, `main`.`Product`.`model`, `main`.`Product`.`serial`, `main`.`Product`.`status`, `main`.`Product`.`createdAt`, `main`.`Product`.`updatedAt` FROM `main`.`Product` WHERE `main`.`Product`.`id` IN (?,?,?,?) LIMIT ? OFFSET ?
+ GET /api/brands 200 in 6ms (compile: 1190µs, render: 5ms)
+prisma:query SELECT `main`.`Brand`.`id`, `main`.`Brand`.`name`, `main`.`Brand`.`status`, `main`.`Brand`.`createdAt`, `main`.`Brand`.`updatedAt` FROM `main`.`Brand` WHERE 1=1 ORDER BY `main`.`Brand`.`createdAt` DESC LIMIT ? OFFSET ?
+⚠ Cross origin request detected from preview-chat-e5b1919f-6d53-4466-8dfa-19dad9fe5457.space-z.ai to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /api/products 200 in 6ms (compile: 1369µs, render: 4ms)
+prisma:query SELECT `main`.`Product`.`id`, `main`.`Product`.`name`, `main`.`Product`.`categoryId`, `main`.`Product`.`brandId`, `main`.`Product`.`uomId`, `main`.`Product`.`model`, `main`.`Product`.`serial`, `main`.`Product`.`status`, `main`.`Product`.`createdAt`, `main`.`Product`.`updatedAt` FROM `main`.`Product` WHERE 1=1 ORDER BY `main`.`Product`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Category`.`id`, `main`.`Category`.`name`, `main`.`Category`.`type`, `main`.`Category`.`status`, `main`.`Category`.`createdAt`, `main`.`Category`.`updatedAt` FROM `main`.`Category` WHERE `main`.`Category`.`id` IN (?,?,?,?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Brand`.`id`, `main`.`Brand`.`name`, `main`.`Brand`.`status`, `main`.`Brand`.`createdAt`, `main`.`Brand`.`updatedAt` FROM `main`.`Brand` WHERE `main`.`Brand`.`id` IN (?,?,?,?,?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Uom`.`id`, `main`.`Uom`.`name`, `main`.`Uom`.`status`, `main`.`Uom`.`createdAt`, `main`.`Uom`.`updatedAt` FROM `main`.`Uom` WHERE `main`.`Uom`.`id` IN (?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`CompanyProfile`.`id`, `main`.`CompanyProfile`.`name`, `main`.`CompanyProfile`.`address`, `main`.`CompanyProfile`.`phone`, `main`.`CompanyProfile`.`email`, `main`.`CompanyProfile`.`website`, `main`.`CompanyProfile`.`vatNo`, `main`.`CompanyProfile`.`logo`, `main`.`CompanyProfile`.`createdAt`, `main`.`CompanyProfile`.`updatedAt` FROM `main`.`CompanyProfile` WHERE 1=1 ORDER BY `main`.`CompanyProfile`.`createdAt` ASC LIMIT ? OFFSET ?
+ GET /api/company 200 in 5ms (compile: 1931µs, render: 3ms)
+prisma:query SELECT `main`.`Condition`.`id`, `main`.`Condition`.`name`, `main`.`Condition`.`status`, `main`.`Condition`.`createdAt`, `main`.`Condition`.`updatedAt` FROM `main`.`Condition` WHERE 1=1 ORDER BY `main`.`Condition`.`createdAt` DESC LIMIT ? OFFSET ?
+ GET /api/conditions 200 in 12ms (compile: 5ms, render: 6ms)
+ GET /api/warranties 200 in 8ms (compile: 4ms, render: 4ms)
+prisma:query SELECT `main`.`Warranty`.`id`, `main`.`Warranty`.`name`, `main`.`Warranty`.`status`, `main`.`Warranty`.`createdAt`, `main`.`Warranty`.`updatedAt` FROM `main`.`Warranty` WHERE 1=1 ORDER BY `main`.`Warranty`.`createdAt` DESC LIMIT ? OFFSET ?
+ GET / 200 in 234ms (compile: 47ms, render: 187ms)

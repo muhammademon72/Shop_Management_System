@@ -684,3 +684,27 @@ Work Log:
 
 Stage Summary:
 - New Quotation form (and View Quotation dialog) now has 9 line-item columns: Product Name / Brand / Model / Serial / Condition / Warranty / **Qty** / Price / Total. The Qty input is a centered number input (min=0, step=any, default "1"). The line Total now correctly shows Qty × Price, and the form's Total Amount footer spans the updated column count. The save logic was already wired for qty — no API or schema change needed.
+
+---
+Task ID: QUOTATION-DIMS-1
+Agent: main
+Task: Reduce both Width and Height of the New Quotation form (user: "New Quotation Form er Hight and Wide komiye dao")
+
+Work Log:
+- Added a new `maxHeight` prop to `FormDialog` (`src/components/form-dialog.tsx`):
+  - Default value: `"92vh"` (preserves existing behavior for all other dialogs).
+  - Applied via inline `style={{ maxHeight, overflowY: "auto" }}` on `DialogContent`.
+  - Replaced the hardcoded `max-h-[92vh] overflow-y-auto` Tailwind classes with the inline style to allow per-dialog override.
+- Updated `src/components/modules/quotations.tsx`:
+  - **New/Edit Quotation form** (line 362): `size="full"` → `size="wide"` (1280px max-width, was `100vw-2rem`) and added `maxHeight="80vh"` (was 92vh).
+  - **View Quotation dialog** (line 644): same change → `size="wide"` + `maxHeight="80vh"`.
+- This mirrors the previous Purchase form change pattern (`size="wide"` for 1280px) and adds the height reduction on top.
+- Other FormDialogs are unaffected since the default `maxHeight` is `"92vh"`.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200 on /.
+
+Stage Summary:
+- New Quotation form (and View Quotation dialog) now opens at a smaller size:
+  - Width: 1280px (was full viewport minus 2rem).
+  - Height: 80vh (was 92vh).
+- The 9-column line items table still fits comfortably at 1280px. Content beyond 80vh height is scrollable inside the dialog (overflow-y-auto preserved).

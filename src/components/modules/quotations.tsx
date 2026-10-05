@@ -363,7 +363,8 @@ export function QuotationsModule() {
         open={open}
         onOpenChange={setOpen}
         title={form.id ? "Edit Quotation" : "New Quotation"}
-        size="full"
+        size="wide"
+        maxHeight="80vh"
         onSubmit={handleSubmit}
         loading={saveMutation.isPending}
         submitLabel={form.id ? "Update" : "Save Quotation"}
@@ -644,7 +645,8 @@ export function QuotationsModule() {
         open={!!viewing}
         onOpenChange={(o) => !o && setViewing(null)}
         title={`Quotation ${viewing?.invoiceNo ?? ""}`}
-        size="full"
+        size="wide"
+        maxHeight="80vh"
         hideFooter
         footer={<Button variant="outline" onClick={() => setViewing(null)}>Close</Button>}
       >
