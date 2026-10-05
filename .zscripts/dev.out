@@ -546,3 +546,30 @@ prisma:query SELECT `main`.`Brand`.`id`, `main`.`Brand`.`name`, `main`.`Brand`.`
 prisma:query SELECT 1
 prisma:query SELECT `main`.`Brand`.`id`, `main`.`Brand`.`name`, `main`.`Brand`.`status`, `main`.`Brand`.`createdAt`, `main`.`Brand`.`updatedAt` FROM `main`.`Brand` WHERE 1=1 ORDER BY `main`.`Brand`.`createdAt` DESC LIMIT ? OFFSET ?
  GET / 200 in 263ms (compile: 50ms, render: 213ms)
+ GET / 200 in 84ms (compile: 2ms, render: 81ms)
+ GET / 200 in 40ms (compile: 1697µs, render: 38ms)
+ GET / 200 in 61ms (compile: 3ms, render: 57ms)
+ GET / 200 in 59ms (compile: 2ms, render: 57ms)
+prisma:query SELECT 1
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Product`.`id` FROM `main`.`Product` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Supplier`.`id` FROM `main`.`Supplier` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Purchase`.`grandTotal` FROM `main`.`Purchase` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`Customer`.`id` FROM `main`.`Customer` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT COUNT(*) AS `_count$_all` FROM (SELECT `main`.`InventoryStock`.`id` FROM `main`.`InventoryStock` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT SUM(`grandTotal`) AS `_sum$grandTotal` FROM (SELECT `main`.`Sell`.`grandTotal` FROM `main`.`Sell` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`Purchase`.`id`, `main`.`Purchase`.`purchaseDate`, `main`.`Purchase`.`supplierId`, `main`.`Purchase`.`invoiceNo`, `main`.`Purchase`.`totalPrice`, `main`.`Purchase`.`discount`, `main`.`Purchase`.`grandTotal`, `main`.`Purchase`.`attachment`, `main`.`Purchase`.`remarks`, `main`.`Purchase`.`createdAt`, `main`.`Purchase`.`updatedAt` FROM `main`.`Purchase` WHERE 1=1 ORDER BY `main`.`Purchase`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Supplier`.`id`, `main`.`Supplier`.`name`, `main`.`Supplier`.`mobile`, `main`.`Supplier`.`address`, `main`.`Supplier`.`status`, `main`.`Supplier`.`createdAt`, `main`.`Supplier`.`updatedAt` FROM `main`.`Supplier` WHERE `main`.`Supplier`.`id` IN (?) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Sell`.`id`, `main`.`Sell`.`sellDate`, `main`.`Sell`.`customerId`, `main`.`Sell`.`invoiceNo`, `main`.`Sell`.`totalPrice`, `main`.`Sell`.`discount`, `main`.`Sell`.`grandTotal`, `main`.`Sell`.`paidAmount`, `main`.`Sell`.`dueAmount`, `main`.`Sell`.`remarks`, `main`.`Sell`.`createdAt`, `main`.`Sell`.`updatedAt` FROM `main`.`Sell` WHERE 1=1 ORDER BY `main`.`Sell`.`createdAt` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Customer`.`id`, `main`.`Customer`.`name`, `main`.`Customer`.`mobile`, `main`.`Customer`.`address`, `main`.`Customer`.`status`, `main`.`Customer`.`createdAt`, `main`.`Customer`.`updatedAt` FROM `main`.`Customer` WHERE `main`.`Customer`.`id` IN (?,?) LIMIT ? OFFSET ?
+ GET /api/stats 200 in 10ms (compile: 2ms, render: 8ms)
+ GET /api/brands 200 in 9ms (compile: 1823µs, render: 7ms)
+prisma:query SELECT 1
+prisma:query SELECT `main`.`Brand`.`id`, `main`.`Brand`.`name`, `main`.`Brand`.`status`, `main`.`Brand`.`createdAt`, `main`.`Brand`.`updatedAt` FROM `main`.`Brand` WHERE 1=1 ORDER BY `main`.`Brand`.`createdAt` DESC LIMIT ? OFFSET ?
+ GET /api/categories 200 in 8ms (compile: 2ms, render: 6ms)
+prisma:query SELECT 1
+prisma:query SELECT `main`.`Category`.`id`, `main`.`Category`.`name`, `main`.`Category`.`type`, `main`.`Category`.`status`, `main`.`Category`.`createdAt`, `main`.`Category`.`updatedAt` FROM `main`.`Category` WHERE 1=1 ORDER BY `main`.`Category`.`createdAt` DESC LIMIT ? OFFSET ?
+✓ Compiled in 146ms
+prisma:query SELECT 1
+prisma:query SELECT `main`.`Category`.`id`, `main`.`Category`.`name`, `main`.`Category`.`type`, `main`.`Category`.`status`, `main`.`Category`.`createdAt`, `main`.`Category`.`updatedAt` FROM `main`.`Category` WHERE 1=1 ORDER BY `main`.`Category`.`createdAt` DESC LIMIT ? OFFSET ?
+ GET /api/categories 200 in 7ms (compile: 2ms, render: 5ms)
+ GET / 200 in 245ms (compile: 45ms, render: 200ms)

@@ -811,3 +811,17 @@ Work Log:
 
 Stage Summary:
 - The Brands list's table header now actually renders white bold text on top of the Royal Blue gradient background. The previous `text-white` on the parent `<tr>` was being silently overridden by `text-foreground` on the `<th>` — fixed by using `[&>th]:text-white` so the white color wins at the cell level.
+
+---
+Task ID: CATEGORY-HEADER-GRADIENT-1
+Agent: main
+Task: Apply Royal Blue gradient + white font to Categories list's header
+
+Work Log:
+- Inspected `src/components/modules/categories.tsx`: the `<DataTable>` had no `headerRowClassName` — used the default gray header.
+- Updated `src/components/modules/categories.tsx`: passed `headerRowClassName="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 [&>th]:text-white [&>th]:font-bold"` — identical to the Brands header (Royal Blue gradient + white bold text via `[&>th]:` child selectors to override the baked `text-foreground` on `<TableHead>`).
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Categories list's table header now has the same Royal Blue gradient background (`blue-700 → blue-800 → indigo-900`) and bold white text as the Brands list. Consistent styling across both modules. Other tables still use the default gray header.
