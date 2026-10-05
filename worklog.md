@@ -638,3 +638,22 @@ Work Log:
 
 Stage Summary:
 - Workspace successfully restored from tar archive. Project is ready to run with `bun run dev` (Next.js dev server on port 3000). All dependencies installed, Prisma client generated, SQLite database intact with previous data (quotations, purchases, products, brands, categories, etc.). Git history preserved on `main` branch.
+
+---
+Task ID: PURCHASE-WIDTH-1
+Agent: main
+Task: Reduce the width of the New Purchase form (user: "New Purchase ei form er Wide komiye dao")
+
+Work Log:
+- Inspected `src/components/form-dialog.tsx`: existing `sizeMap` had sizes `sm|md|lg|xl|full`. The New Purchase form was using `size="full"` which set `sm:max-w-[calc(100vw-2rem)]` — basically full viewport width.
+- Added a new size option `wide` with `sm:max-w-[1280px]` to `sizeMap` in `form-dialog.tsx`. Bounded width 1280px — wide enough for the 12-column line items table but no longer full viewport.
+- Updated the `FormDialogProps` `size` union to include `"wide"`: `"sm" | "md" | "lg" | "xl" | "wide" | "full"`.
+- Updated `src/components/modules/purchases.tsx`:
+  - Line 512: New/Edit Purchase form `size="full"` → `size="wide"` (the user's actual request).
+  - Line 882: View Purchase dialog `size="full"` → `size="wide"` (consistency — same 12-column layout).
+- Kept `quotations.tsx` unchanged — user only asked about the New Purchase form.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled successfully, HTTP 200 on /.
+
+Stage Summary:
+- New Purchase form (and View Purchase dialog) width reduced from full-viewport (`calc(100vw-2rem)`) to a bounded `1280px`. The 12-column line items table still fits comfortably. Quotation form remains at `size="full"` (unchanged, since the user only asked about Purchase).

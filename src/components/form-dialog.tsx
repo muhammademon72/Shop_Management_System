@@ -21,7 +21,7 @@ interface FormDialogProps {
   submitLabel?: string
   cancelLabel?: string
   loading?: boolean
-  size?: "sm" | "md" | "lg" | "xl" | "full"
+  size?: "sm" | "md" | "lg" | "xl" | "wide" | "full"
   footer?: React.ReactNode
   hideFooter?: boolean
   children: React.ReactNode
@@ -32,8 +32,11 @@ const sizeMap = {
   md: "sm:max-w-lg",
   lg: "sm:max-w-2xl",
   xl: "sm:max-w-5xl",
+  // Wide — bounded width (1280px) for wide forms with multi-column tables.
+  // Used by the New Purchase form whose 12-column line items table needs
+  // width but doesn't need to span the full viewport.
+  wide: "sm:max-w-[1280px]",
   // Full page width — fills the viewport minus 1rem padding on each side.
-  // Used by the New Purchase form which has a 12-column line items table.
   full: "sm:max-w-[calc(100vw-2rem)]",
 }
 

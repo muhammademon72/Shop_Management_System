@@ -503,13 +503,13 @@ export function PurchasesModule() {
         </table>
       </div>
 
-      {/* Edit/Create form dialog — uses full-page width since the line
-          items table has 12 columns and needs the extra space. */}
+      {/* Edit/Create form dialog — bounded width (1280px) since the 12-column
+          line items table needs width but doesn't need the full viewport. */}
       <FormDialog
         open={open}
         onOpenChange={setOpen}
         title={form.id ? "Edit Purchase" : "New Purchase"}
-        size="full"
+        size="wide"
         onSubmit={handleSubmit}
         loading={saveMutation.isPending}
         submitLabel={form.id ? "Update" : "Save Purchase"}
@@ -879,7 +879,7 @@ export function PurchasesModule() {
         open={!!viewing}
         onOpenChange={(o) => !o && setViewing(null)}
         title={`Purchase ${viewing?.invoiceNo ?? ""}`}
-        size="full"
+        size="wide"
         hideFooter
         footer={
           <Button variant="outline" onClick={() => setViewing(null)}>
