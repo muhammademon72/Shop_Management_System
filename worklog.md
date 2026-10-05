@@ -932,3 +932,17 @@ Work Log:
 
 Stage Summary:
 - The Quotation list's main table header now has the same Royal Blue gradient and bold white text. Ten modules share the consistent style: Brands, Categories, UOMs, Products, Conditions, Warranties, Purchases, Suppliers, Inventory, Quotations. (Inner line-item tables inside New/View Quotation dialogs retain their light-blue #9DC3E6 header for in-form visual differentiation.)
+
+---
+Task ID: SALES-HEADER-GRADIENT-1
+Agent: main
+Task: Apply Royal Blue gradient + white font to Sales list's header
+
+Work Log:
+- Found that `sells.tsx` has the main Sales list using the shared `<DataTable>` (line 352). Updated only this main list (the inner line-items table inside New/View Sale dialogs uses a light-blue #9DC3E6 header — intentionally different from the list page header, left unchanged like Quotation).
+- Updated `src/components/modules/sells.tsx`: added `headerRowClassName="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 [&>th]:text-white [&>th]:font-bold"` to the main `<DataTable>`.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Sales list's main table header now has the same Royal Blue gradient and bold white text. Eleven modules share the consistent style: Brands, Categories, UOMs, Products, Conditions, Warranties, Purchases, Suppliers, Inventory, Quotations, Sales.
