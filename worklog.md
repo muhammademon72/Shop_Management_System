@@ -1131,3 +1131,22 @@ Stage Summary:
   - LEFT: large bold "Units of Measurement (UOM)" label → search input ("Search UOMs...")
   - RIGHT: "Add UOM" button
 - Stacks vertically on small screens. Same pattern as Brands list.
+
+---
+Task ID: CATEGORY-SEARCH-LEFT-RIGHT-1
+Agent: main
+Task: Add "Categories" label on LEFT of search box and "Add Category" button on RIGHT — Categories List
+
+Work Log:
+- Updated `src/components/modules/categories.tsx`:
+  - Removed the `actions={<Button>Add Category</Button>}` prop from `<PageHeader>` (top-right button gone from page header).
+  - Passed `searchLeftAddon={<span className="text-3xl font-bold whitespace-nowrap">Categories</span>}` — large bold label on LEFT of the search input.
+  - Passed `toolbar={<Button onClick={handleAdd}><Plus /> Add Category</Button>}` — the Add Category button on RIGHT of the search input.
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Categories List top row now shows (left-to-right on sm+ screens):
+  - LEFT: large bold "Categories" label → search input ("Search categories...")
+  - RIGHT: "Add Category" button
+- Same pattern as Brands and UOMs lists. Stacks vertically on small screens.

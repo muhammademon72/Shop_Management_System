@@ -149,11 +149,6 @@ export function CategoriesModule() {
       <PageHeader
         title="Categories"
         description="Manage product categories and their types."
-        actions={
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4" /> Add Category
-          </Button>
-        }
       />
 
       <DataTable
@@ -166,6 +161,14 @@ export function CategoriesModule() {
         onSearchChange={setSearch}
         searchPlaceholder="Search categories..."
         headerRowClassName="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-900 [&>th]:text-white [&>th]:font-bold"
+        searchLeftAddon={
+          <span className="text-3xl font-bold whitespace-nowrap">Categories</span>
+        }
+        toolbar={
+          <Button onClick={handleAdd}>
+            <Plus className="h-4 w-4" /> Add Category
+          </Button>
+        }
       />
 
       <FormDialog
