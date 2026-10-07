@@ -101,13 +101,13 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-14 items-center gap-2 border-b px-4">
+      <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-600 text-white">
           <Store className="h-4 w-4" />
         </div>
         <div className="flex flex-col">
-          <span className="text-sm font-semibold leading-tight">Shop MS</span>
-          <span className="text-muted-foreground text-[10px] leading-tight">
+          <span className="text-sm font-semibold leading-tight text-white">Shop MS</span>
+          <span className="text-[10px] leading-tight text-sidebar-foreground/60">
             Management System
           </span>
         </div>
@@ -117,7 +117,7 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
         <nav className="flex flex-col gap-4">
           {NAV.map((group) => (
             <div key={group.group} className="flex flex-col gap-1">
-              <div className="text-muted-foreground px-2 text-[11px] font-semibold uppercase tracking-wider">
+              <div className="px-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 {group.group}
               </div>
               <div className="flex flex-col gap-0.5">
@@ -131,16 +131,16 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
                       className={cn(
                         "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors",
                         isActive
-                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
-                          : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                          ? "bg-emerald-600 text-white"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                       )}
                     >
                       <Icon
                         className={cn(
                           "h-4 w-4 shrink-0",
                           isActive
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-muted-foreground"
+                            ? "text-white"
+                            : "text-sidebar-foreground/60"
                         )}
                       />
                       <span className="truncate">{item.label}</span>
@@ -153,8 +153,8 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
         </nav>
       </ScrollArea>
 
-      <div className="border-t p-3">
-        <Button asChild variant="outline" size="sm" className="w-full">
+      <div className="border-t border-sidebar-border p-3">
+        <Button asChild variant="outline" size="sm" className="w-full border-sidebar-border bg-transparent text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground">
           <Link href={pathname}>
             <Package className="mr-2 h-4 w-4" />
             Shop Management v1.0

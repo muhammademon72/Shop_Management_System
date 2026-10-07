@@ -112,8 +112,8 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-screen w-full bg-muted/30">
-      {/* Desktop sidebar */}
-      <aside className="bg-background hidden w-64 shrink-0 border-r lg:flex lg:flex-col">
+      {/* Desktop sidebar — dark charcoal theme via sidebar CSS variables */}
+      <aside className="hidden w-64 shrink-0 bg-sidebar text-sidebar-foreground lg:flex lg:flex-col">
         <SidebarContent />
       </aside>
 
@@ -122,7 +122,7 @@ export function AppShell() {
         open={mobileSidebarOpen}
         onOpenChange={setMobileSidebarOpen}
       >
-        <SheetContent side="left" className="w-72 p-0">
+        <SheetContent side="left" className="w-72 bg-sidebar text-sidebar-foreground p-0">
           <SidebarContent onNavigate={() => setMobileSidebarOpen(false)} />
         </SheetContent>
       </Sheet>

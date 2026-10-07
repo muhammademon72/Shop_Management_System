@@ -1150,3 +1150,45 @@ Stage Summary:
   - LEFT: large bold "Categories" label → search input ("Search categories...")
   - RIGHT: "Add Category" button
 - Same pattern as Brands and UOMs lists. Stacks vertically on small screens.
+
+---
+Task ID: THEME-EMERALD-1
+Agent: main
+Task: Apply theme/color from user-uploaded picture to the entire software (light theme + dark charcoal sidebar + emerald green accent)
+
+Work Log:
+- Used VLM to extract theme palette from /home/z/my-project/upload/pasted_image_1791378767654.png:
+  - Page background: #F3F4F6 (cool light gray)
+  - Card background: #FFFFFF
+  - Sidebar: #1F2937 (dark charcoal)
+  - Active sidebar item: #10B981 (emerald)
+  - Primary/accent: #10B981 (emerald)
+  - Text primary: #111827, text secondary: #6B7280
+  - Border: #E5E7EB
+  - Status Active: #D1FAE5 bg + #059669 text; Inactive: red
+  - Avatar/logo: emerald
+- **globals.css**: rewrote the `:root` CSS variables to encode the new theme:
+  - `--background` → #F3F4F6 (light gray page bg)
+  - `--foreground` → #111827 (near-black text)
+  - `--primary` → emerald `oklch(0.696 0.17 162.48)` (≈ #10B981) — this drives all primary buttons/links throughout the app
+  - `--sidebar`, `--sidebar-foreground`, `--sidebar-accent`, `--sidebar-border` → dark charcoal palette + green accent
+  - `--ring` and `--chart-1` → emerald
+  - Dark mode CSS variables left unchanged (only the light theme — the app default — was targeted).
+- **app-shell.tsx**: replaced `bg-background` on the desktop `<aside>` and the mobile `<SheetContent>` with `bg-sidebar text-sidebar-foreground` so the sidebar actually picks up the dark charcoal background defined in globals.css.
+- **sidebar.tsx**: rewrote styling for the dark sidebar:
+  - Brand "Shop MS" header text → `text-white`, subtitle → `text-sidebar-foreground/60`
+  - Group labels (e.g., "Dashboard", "Product Manage") → `text-sidebar-foreground/50`
+  - Active menu item → `bg-emerald-600 text-white` (solid emerald, was light-emerald bg+text before)
+  - Inactive items → `text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground`
+  - Bottom footer button → transparent bg + sidebar border colors
+  - Replaced all hardcoded `text-muted-foreground` / `text-foreground/70` (which assumed a light sidebar) with sidebar-variable-based classes so they read correctly on the dark charcoal background.
+- **Bulk-update all 12 module files** via /home/z/my-project/scripts/retheme-table-headers.sh (Python heredoc replacing the previously-applied Royal Blue gradient):
+  - All 11 DataTable-based modules (brands, categories, uoms, products, conditions, warranties, suppliers, customers, inventory, quotations, sells): `headerRowClassName` changed from `from-blue-700 via-blue-800 to-indigo-900` → `from-emerald-500 via-emerald-600 to-teal-700`. White text on header preserved.
+  - purchases.tsx (custom inline table): inline gradient changed from `linear-gradient(to right, #1d4ed8, #1e40af 50%, #312e81)` → `linear-gradient(to right, #10B981, #059669 50%, #0F766E)`.
+- Lint: clean (0 errors, 0 warnings). Dev server hot-reload: ✓ Compiled, HTTP 200.
+- Visual verification via VLM (screenshots of Dashboard and Brands pages saved to /home/z/my-project/download/):
+  - Dashboard: VLM confirmed "dark charcoal or slate gray sidebar background", "vibrant emerald green active menu", emerald on logo + New Purchase button + AD badge.
+  - Brands page: VLM confirmed "dark charcoal gray sidebar", "vibrant green active menu highlight (Brand List)", table header "gradient from bright green to a darker teal".
+
+Stage Summary:
+- The whole software now uses the picture's theme: light gray page background (#F3F4F6), dark charcoal sidebar (#1F2937) with emerald green active item highlight (#10B981), emerald accent color for primary buttons/links, and emerald→teal gradient on all 12 list page table headers. StatusBadge and existing emerald accents in dashboard/sells/purchases due-amount badges were already on emerald — now they all share a consistent emerald accent theme matching the picture.
