@@ -1229,3 +1229,21 @@ Work Log:
 
 Stage Summary:
 - The Sell List now has a one-click Print Invoice feature. A green Printer icon button was added to the row Actions column (between View and Edit), and a "Print Invoice" button was added to the View dialog footer. Clicking either opens a new browser tab with a fully-rendered printable invoice (company header + customer block + line items table with Brand/Model/Serial/Condition badges + footer with totals + signature lines) and triggers the browser's print dialog. The print layout matches the user-uploaded reference format: NO./PRODUCT SPECIFICATIONS/CONDITION/QTY/PRICE/TOTAL columns, green accents, no vertical grid lines, and emerald Total Net Payable. Company info comes from /api/company.
+
+---
+Task ID: SALE-CUSTOMER-SEARCH-1
+Agent: main
+Task: Add search to the Customer dropdown in the New Sale form
+
+Work Log:
+- Inspected `src/components/modules/sells.tsx`: the Customer field in the New Sale form was using a plain `<Select>` (no search) at lines 409-426.
+- Replaced the plain `<Select>` with `<SearchableSelect>` (already imported in the file):
+  - `value={form.customerId}` (no longer needs "none" placeholder workaround)
+  - `onValueChange={(v) => setForm({ ...form, customerId: v ?? null })}`
+  - `options` built from customers with `hint: s.mobile` (so the search list shows customer name + mobile number hint)
+  - `searchPlaceholder="Search customer..."`, `emptyText="No customer found."`, `allowNone` + `noneLabel="— None —"`
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Customer dropdown in the New Sale form is now searchable. Customers are listed with their mobile number as a hint. Typing in the dropdown filters by customer name. A "— None —" option is included via `allowNone` to clear the selection (preserving the previous behavior).

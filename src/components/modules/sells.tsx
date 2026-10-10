@@ -406,24 +406,18 @@ export function SellsModule() {
             </div>
             <div className="grid gap-1">
               <Label className="text-xs">Customer</Label>
-              <Select
-                value={form.customerId ?? "none"}
+              <SearchableSelect
+                value={form.customerId}
                 onValueChange={(v) =>
-                  setForm({ ...form, customerId: v === "none" ? null : v })
+                  setForm({ ...form, customerId: v ?? null })
                 }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select customer" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— None —</SelectItem>
-                  {(customers ?? []).map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={(customers ?? []).map((s) => ({ value: s.id, label: s.name, hint: s.mobile }))}
+                placeholder="Select customer"
+                searchPlaceholder="Search customer..."
+                emptyText="No customer found."
+                allowNone
+                noneLabel="— None —"
+              />
             </div>
             <div className="grid gap-1">
               <Label className="text-xs">Invoice No</Label>
