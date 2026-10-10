@@ -1476,3 +1476,23 @@ Work Log:
 
 Stage Summary:
 - The Quotation List now has a one-click Print Quotation feature, identical in pattern to the Sell print feature. A green Printer icon button was added to the row Actions column (between View and Edit) and a "Print Quotation" button was added to the View dialog footer. Clicking either opens a new browser tab with a printable quotation (company header + "Quotation To" block + line items with Brand/Model/Serial/Warranty badges + footer with subtotal/discount/total + signature lines) and triggers the browser's print dialog. The print is marked "QUOTATION" throughout and includes the Warranty badge on each item (since quotations include warranty info, unlike sales).
+
+---
+Task ID: DASHBOARD-ONE-PAGE-1
+Agent: main
+Task: Make the Dashboard fit on a single page (no scrolling on the main content) — only the menu bar (sidebar) should scroll
+
+Work Log:
+- Rewrote `src/components/modules/dashboard.tsx` to be viewport-fit:
+  - **Root**: `flex h-[calc(100vh-5.5rem)] flex-col gap-3 overflow-hidden` — fills the available viewport height (3.5rem header + 2rem padding = 5.5rem subtracted) and prevents the dashboard itself from scrolling. The sidebar's ScrollArea already scrolls independently.
+  - **Compact header row**: combined the page title + description with the previously-separate "Quick Actions" buttons (New Purchase / New Sale / Add Product / Inventory) into one inline row at the top, right-aligned via `justify-between`. The standalone Quick Actions card at the bottom was removed.
+  - **KPI cards**: dropped the 8th "Total KPIs / Live" placeholder KPI (was redundant). Now 7 real KPIs in a `grid-cols-2 sm:grid-cols-3 lg:grid-cols-7` — fits in one row on desktop. Each card is now `py-2` (was `py-4`), with `CardContent p-3`, smaller icon (`h-6 w-6` box with `h-3 w-3` icon — was `h-9 w-9` box with `h-4 w-4` icon), smaller label (`text-[11px]`), smaller value (`text-base` — was `text-2xl`).
+  - **Recent activity**: grid now uses `min-h-0 flex-1` so it fills the remaining height below the KPI grid without pushing the page taller. Each Recent Purchases / Recent Sales card is a flex column with its own `overflow-auto` table region — if the list is long, the table scrolls INSIDE the card, not the page.
+  - **Table rows**: shrunk row padding from default to `py-1.5`, all text dropped to `text-xs` for compactness. Skeleton loaders and empty states also tightened.
+  - Removed unused imports (PageHeader, CardHeader, CardTitle, ArrowRight).
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser at 1440×900:
+  - VLM confirmed: "the entire dashboard content—including the header, KPI cards, and both the Recent Purchases and Recent Sales tables—is fully visible without any scrolling required. There is no separate Quick Actions card; instead, the action buttons are positioned inline at the top right of the main header. The KPI cards are compact and feature small, simple icons in the upper right corner of each card."
+
+Stage Summary:
+- The Dashboard now fits on a single page without any scrolling on the main content area. The Quick Actions card was merged into the header (buttons inline at the top-right). KPI cards are now compact (7 cards in a single row on desktop, 2 columns on small screens). The Recent Purchases / Recent Sales tables are inside cards that fill the remaining viewport height — if any list is long, only that card's table region scrolls internally (not the whole page). The sidebar already scrolls independently via ScrollArea, so the user's "only Menu bar Caroling hobe" requirement is satisfied.
