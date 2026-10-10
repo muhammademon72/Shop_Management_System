@@ -1444,3 +1444,35 @@ Work Log:
 
 Stage Summary:
 - The Company Profile form's "Logo URL" field now has a text input on the left and an "Attach" button on the right that opens a file picker for logo images (PNG / JPG / WebP / GIF / SVG, max 2 MB). Picking a file uploads it to `/uploads/logos/` and auto-fills the URL into the field. The user can also still paste a URL directly. As a side benefit, the previously-broken FileUpload (used by Purchases) is now working again because the missing /api/upload route was created.
+
+---
+Task ID: QUOTATION-PRINT-1
+Agent: main
+Task: Add a "Print Quotation" feature to the Quotation List (mirror of the Sell print feature)
+
+Work Log:
+- **New file `src/components/quotation-invoice-print.tsx`**: exports `printQuotationInvoice(q, company)`. Mirrors the Sell invoice print layout but adapted for quotations:
+  - Header: green logo + company info (Name / Address / Contact: <phone>, Email: <email> / Website / VAT) on the left; "QUOTATION" green pill + "Quotation" title + Quotation No# + Date on the right; green 3px divider.
+  - Customer block: "Quotation To" header (instead of "Bill To") with customer name + Contact: <mobile> + address; right side shows "Validity / PROPOSED / Quotation valid for 30 days".
+  - Line items table: NO. / Product Specifications / Condition / Qty / Price / Total — product specs cell has product name + rounded badges for Brand / Model / Serial / Warranty (warranty badge uses lime-green color to distinguish from serial's blue). Condition column has a green pill.
+  - Footer: "Quotation Terms & Conditions" gray box (3 numbered terms) on the left + totals on the right (Subtotal / Discount red / Total Net Payable emerald). NO Paid/Due (quotations are not invoices).
+  - Signature lines: Customer Signature + Authorized Signature.
+  - All the Sell-style print styling preserved (emerald accent, sans-serif, A4-friendly). `stripUrlScheme` helper inherited from the Sell version.
+- **Quotations module** (`src/components/modules/quotations.tsx`):
+  - Imported `Printer` from lucide-react, `printQuotationInvoice` from the new file. CompanyProfile type was already imported.
+  - Added `handlePrint(row)` that calls `printQuotationInvoice(row, company)` — the `company` query was already in place (used by the form header).
+  - Added a green Printer icon button to the row Actions column (between View and Edit) with `text-emerald-600 hover:text-emerald-700` and `title="Print Quotation"`.
+  - Replaced the View dialog's single Close footer with a flex row: Close on the left + "Print Quotation" button (emerald background) on the right — same pattern as Sales.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual + functional verification via agent-browser + VLM:
+  - Screenshot of the Quotations list confirmed a green Printer icon button appears between View (eye) and Edit (pencil) in the Actions column.
+  - Clicking the Print button opened a new tab titled "Quotation QTN-2026-382"; VLM verified the printed quotation contained:
+    - green "QUOTATION" badge in top-right
+    - "Quotation No# QTN-2026-382"
+    - "QUOTATION TO" recipient block (instead of "Bill To")
+    - line items columns NO. / PRODUCT SPECIFICATIONS / CONDITION / QTY / PRICE / TOTAL
+    - footer with Subtotal + Total Net Payable (no Paid/Due)
+    - Customer Signature + Authorized Signature lines at the bottom
+
+Stage Summary:
+- The Quotation List now has a one-click Print Quotation feature, identical in pattern to the Sell print feature. A green Printer icon button was added to the row Actions column (between View and Edit) and a "Print Quotation" button was added to the View dialog footer. Clicking either opens a new browser tab with a printable quotation (company header + "Quotation To" block + line items with Brand/Model/Serial/Warranty badges + footer with subtotal/discount/total + signature lines) and triggers the browser's print dialog. The print is marked "QUOTATION" throughout and includes the Warranty badge on each item (since quotations include warranty info, unlike sales).

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Pencil, Plus, Trash2, Eye, FileText, X, Loader2 } from "lucide-react"
+import { Pencil, Plus, Trash2, Eye, FileText, X, Loader2, Printer } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,6 +28,7 @@ import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { SearchableSelect } from "@/components/searchable-select"
 import { PageHeader } from "@/components/page-header"
+import { printQuotationInvoice } from "@/components/quotation-invoice-print"
 import type { Quotation, QuotationItem, Customer, Product, Brand, Condition, Warranty, CompanyProfile } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
 
@@ -241,6 +242,9 @@ export function QuotationsModule() {
     setForm(emptyForm())
     setOpen(true)
   }
+  const handlePrint = (row: Quotation) => {
+    printQuotationInvoice(row, company ?? null)
+  }
   const handleEdit = (row: Quotation) => {
     setForm({
       id: row.id,
@@ -323,6 +327,9 @@ export function QuotationsModule() {
         <div className="flex items-center gap-1">
           <Button size="icon" variant="ghost" onClick={() => setViewing(row)} title="View">
             <Eye className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" onClick={() => handlePrint(row)} title="Print Quotation" className="text-emerald-600 hover:text-emerald-700">
+            <Printer className="h-4 w-4" />
           </Button>
           <Button size="icon" variant="ghost" onClick={() => handleEdit(row)} title="Edit">
             <Pencil className="h-4 w-4" />
@@ -649,7 +656,14 @@ export function QuotationsModule() {
         size="wide"
         maxHeight="80vh"
         hideFooter
-        footer={<Button variant="outline" onClick={() => setViewing(null)}>Close</Button>}
+        footer={
+          <div className="flex w-full items-center justify-between gap-2">
+            <Button variant="outline" onClick={() => setViewing(null)}>Close</Button>
+            <Button onClick={() => viewing && handlePrint(viewing)} className="bg-emerald-600 text-white hover:bg-emerald-700">
+              <Printer className="mr-2 h-4 w-4" /> Print Quotation
+            </Button>
+          </div>
+        }
       >
         {viewing && (
           <div className="flex flex-col gap-3">
