@@ -162,8 +162,9 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
       color: #6b7280;
       text-transform: uppercase;
     }
-    .customer .name { font-weight: 700; font-size: 14px; }
-    .customer .line { color: #4B5563; font-size: 12px; }
+    .customer .name { font-weight: 700; font-size: 15px; color: #111827; margin-bottom: 2px; }
+    .customer .line { color: #4B5563; font-size: 12px; margin: 1px 0; }
+    .customer .line strong { color: #111827; font-weight: 600; }
 
     /* === TABLE === */
     table.items {
@@ -312,7 +313,7 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
       <div>
         <h3>Bill To</h3>
         <div class="name">${escape(customerName)}</div>
-        ${customerMobile ? `<div class="line">${escape(customerMobile)}</div>` : ""}
+        ${customerMobile ? `<div class="line"><strong>Contact:</strong> ${escape(customerMobile)}</div>` : ""}
         ${customerAddress ? `<div class="line">${escape(customerAddress)}</div>` : ""}
       </div>
       <div style="text-align:right;">

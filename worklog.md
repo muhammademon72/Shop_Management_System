@@ -1322,3 +1322,30 @@ Work Log:
 
 Stage Summary:
 - All currency values across the entire app (tables, forms, dialogs, print invoices, dashboard totals) now render as BDT (Bangladeshi Taka) with the ৳ symbol and Indian-subcontinent number grouping (e.g., ৳ 1,100.00, ৳ 25,000.00, ৳ 12,34,567.50).
+
+---
+Task ID: SELL-PRINT-BILLTO-FORMAT-1
+Agent: main
+Task: Reformat the "Bill To" customer block in the SALES INVOICE print to match the user's specified layout
+
+Work Log:
+- User requested the Bill To block follow this layout (4 lines):
+  - Line 1: "Bill To" header
+  - Line 2: customer name (bold, prominent)
+  - Line 3: `Contact: <mobile>`
+  - Line 4: customer address
+- Updated `src/components/sell-invoice-print.tsx`:
+  - CSS: increased `.customer .name` font-size from 14px → 15px, set `color: #111827` for stronger contrast; added `margin: 1px 0` to `.customer .line` for tighter line spacing; added `.customer .line strong` rule so the "Contact:" label renders bold.
+  - JSX: refactored the Bill To block — mobile now renders as `<div class="line"><strong>Contact:</strong> {mobile}</div>` instead of the previous bare mobile number. Name, contact, address appear on separate lines in the requested order.
+  - The "Payment" block on the right (PAID/PARTIAL/DUE + paid + due) was preserved unchanged.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser + VLM:
+  - VLM read the Bill To block line-by-line and confirmed:
+    - Line 1: "BILL TO" (uppercase header)
+    - Line 2: "Weavers Furnishing Limited" (customer name)
+    - Line 3: "Contact: 01714142078" (matches format)
+    - Line 4: "House# 272B, 3rd Floor, Shahid Janani Jahanara Imam Sharani, Elephant Road, Dhaka-1205"
+  - Format check: ✅ matches user's specification.
+
+Stage Summary:
+- The SALES INVOICE print's Bill To block now follows the user's exact format: "Bill To" header → customer name (bold) → "Contact: <mobile>" → customer address, each on its own line. The Contact label is bold for emphasis. The Payment block on the right side remains unchanged.
