@@ -126,6 +126,7 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
     .company .info .addr { color: #374151; }
     .company .info .contact { color: #374151; }
     .company .info .contact strong { color: #111827; font-weight: 600; }
+    .company .info .spacer { height: 8px; }
     .meta { text-align: right; min-width: 220px; }
     .meta .title {
       font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 4px;
@@ -294,10 +295,10 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
           <h1>${escape(companyName)}</h1>
           ${companyAddress ? `<p class="addr">${escape(companyAddress)}</p>` : ""}
           ${companyPhone || companyEmail
-            ? `<p class="contact">${companyPhone ? `<strong>Mobile:</strong> ${escape(companyPhone)}` : ""}${companyPhone && companyEmail ? ", " : ""}${companyEmail ? `<strong>Email:</strong> ${escape(companyEmail)}` : ""}</p>`
+            ? `<div class="spacer"></div><p class="contact">${companyPhone ? `<strong>Contact:</strong> ${escape(companyPhone)}` : ""}${companyPhone && companyEmail ? ", " : ""}${companyEmail ? `<strong>Email:</strong> ${escape(companyEmail)}` : ""}</p>`
             : ""}
-          ${companyWebsite ? `<p class="contact"><strong>Website:</strong> ${escape(companyWebsite)}</p>` : ""}
-          ${companyVat ? `<p><strong>VAT:</strong> ${escape(companyVat)}</p>` : ""}
+          ${companyWebsite ? `<div class="spacer"></div><p class="contact"><strong>Website:</strong> ${escape(companyWebsite)}</p>` : ""}
+          ${companyVat ? `<div class="spacer"></div><p><strong>VAT:</strong> ${escape(companyVat)}</p>` : ""}
         </div>
       </div>
       <div class="meta">

@@ -1349,3 +1349,38 @@ Work Log:
 
 Stage Summary:
 - The SALES INVOICE print's Bill To block now follows the user's exact format: "Bill To" header → customer name (bold) → "Contact: <mobile>" → customer address, each on its own line. The Contact label is bold for emphasis. The Payment block on the right side remains unchanged.
+
+---
+Task ID: SELL-PRINT-ADDRESS-CORRECTION-1
+Agent: main
+Task: Correct the company address block in the SALES INVOICE print — change "Mobile:" to "Contact:" and add blank-line gaps between the address, contact, website, and VAT lines
+
+Work Log:
+- User requested the corrected layout:
+  - Line 1: company name
+  - Line 2: address
+  - (blank line)
+  - Line 3: `Contact: <phone>, Email: <email>` (was "Mobile:")
+  - (blank line)
+  - Line 4: `Website: <website>`
+  - (blank line)
+  - Line 5: `VAT: <vat>`
+- Updated `src/components/sell-invoice-print.tsx`:
+  - CSS: added a `.company .info .spacer { height: 8px; }` rule for the blank-line gap.
+  - JSX: changed `<strong>Mobile:</strong>` → `<strong>Contact:</strong>` on the contact line.
+  - JSX: inserted `<div class="spacer"></div>` before each of the contact / website / VAT blocks so they're visually separated by a blank line.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser + VLM:
+  - VLM read the company block line-by-line and confirmed:
+    - Line 1: "Rahman Enterprise"
+    - Line 2: address
+    - (blank line)
+    - Line 3: "Contact: 01818675472, Email: rahmanenterprise@gmail.com" (label changed from "Mobile:" to "Contact:")
+    - (blank line)
+    - Line 4: "Website: https://www.rahmanenterprise.com"
+    - (blank line)
+    - Line 5: "VAT: VAT-123456789"
+  - Verification: "Yes, the text follows the specified layout exactly. Yes, there are clearly visible blank-line gaps between the address, contact, website, and VAT lines."
+
+Stage Summary:
+- The SALES INVOICE print's company address block now matches the user's corrected layout exactly: company name → address → (gap) → Contact: <phone>, Email: <email> → (gap) → Website: <url> → (gap) → VAT: <number>. The "Mobile:" label was changed to "Contact:" and 8px blank-line gaps were added between the address, contact, website, and VAT lines.
