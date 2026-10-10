@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PageHeader } from "@/components/page-header"
+import { LogoAttach } from "@/components/logo-attach"
 import type { CompanyProfile } from "@/lib/types"
 
 interface FormState {
@@ -162,11 +163,22 @@ export function CompanyProfileModule() {
                 </div>
                 <div className="grid gap-2 sm:col-span-2">
                   <Label>Logo URL</Label>
-                  <Input
-                    value={form.logo}
-                    onChange={(e) => setForm({ ...form, logo: e.target.value })}
-                    placeholder="https://.../logo.png"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={form.logo}
+                      onChange={(e) => setForm({ ...form, logo: e.target.value })}
+                      placeholder="https://.../logo.png — or click Attach to upload"
+                      className="flex-1"
+                    />
+                    <LogoAttach
+                      value={form.logo}
+                      onChange={(url) => setForm({ ...form, logo: url })}
+                      maxSizeBytes={2 * 1024 * 1024}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    PNG / JPG / WebP / GIF / SVG — max 2 MB.
+                  </p>
                 </div>
                 <div className="sm:col-span-2">
                   <Button type="submit" disabled={saveMutation.isPending}>

@@ -1409,3 +1409,38 @@ Work Log:
 
 Stage Summary:
 - The SALES INVOICE print's company address block now matches the user's final corrected format exactly: company name → address → Contact: <phone>, Email: <email> → Website: <url-without-scheme> → VAT: <number>, all on consecutive lines with no blank-line gaps. The "https://" prefix is automatically stripped from the stored website URL so the printed line reads "www.rahmanenterprise.com".
+
+---
+Task ID: COMPANY-LOGO-ATTACH-1
+Agent: main
+Task: Add an "Attach" option next to the Logo URL field in Company Profile for uploading a small logo file
+
+Work Log:
+- Found that the existing FileUpload component posts to `/api/upload`, but the route was missing (404). Existing purchases uploads still worked because they were saved earlier — the route had been lost in a previous workspace restore.
+- **Created `/api/upload` API route** (`src/app/api/upload/route.ts`):
+  - POST handler that accepts `multipart/form-data` with field name `file`.
+  - Reads optional `?bucket=` query param (defaults to `purchases`); allowed buckets: `purchases`, `logos`, `company`, `misc` (whitelist for path safety).
+  - Validates file size ≤ 10 MB and that the file isn't empty.
+  - Saves to `public/uploads/<bucket>/<timestamp>_<safe-name>` (alphanumerics only, max 200 chars).
+  - Returns `{ url, name, size, type }` on success.
+  - Also restores FileUpload functionality for the Purchases module (which was silently broken — the file picker there now works again).
+- **Created `LogoAttach` component** (`src/components/logo-attach.tsx`):
+  - Compact `<Button variant="outline" size="sm">` with Paperclip icon labeled "Attach".
+  - Hidden `<input type="file" accept="image/*">` (PNG/JPG/WebP/GIF/SVG).
+  - Validates the picked file is an image and ≤ 2 MB (much smaller than the global 10 MB upload cap — appropriate for logos).
+  - Uploads via XHR to `/api/upload?bucket=logos` with progress reporting (button shows "NN%" during upload).
+  - Calls `onChange(url)` with the resulting URL — parent just stores it in the form state.
+  - Toast on success/error.
+- **Wired into Company Profile** (`src/components/modules/company-profile.tsx`):
+  - Imported `LogoAttach`.
+  - Replaced the single `<Input>` for Logo URL with a flex row: text `<Input>` (placeholder "https://.../logo.png — or click Attach to upload") + `<LogoAttach>` button on the right.
+  - Added hint text below: "PNG / JPG / WebP / GIF / SVG — max 2 MB."
+  - The text input remains editable so users can also paste a URL directly — both methods work.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual + functional verification via agent-browser + VLM:
+  - VLM confirmed the Logo URL field shows a text input on the left and an "Attach" button (paperclip icon) on the right, with the hint text "PNG / JPG / WebP / GIF / SVG — max 2 MB" below.
+  - Tested an actual upload by dispatching a synthetic change event via DataTransfer (using the previously-uploaded svg file as input). After upload, the URL field auto-filled with `/uploads/logos/1791642007109_logo.svg` — VLM confirmed the value in the input and that the Attach button returned to its idle "Attach" state (no spinner).
+  - Manual curl test confirmed the upload endpoint saves files to `/public/uploads/logos/<timestamp>_<filename>` and returns the URL.
+
+Stage Summary:
+- The Company Profile form's "Logo URL" field now has a text input on the left and an "Attach" button on the right that opens a file picker for logo images (PNG / JPG / WebP / GIF / SVG, max 2 MB). Picking a file uploads it to `/uploads/logos/` and auto-fills the URL into the field. The user can also still paste a URL directly. As a side benefit, the previously-broken FileUpload (used by Purchases) is now working again because the missing /api/upload route was created.
