@@ -1384,3 +1384,28 @@ Work Log:
 
 Stage Summary:
 - The SALES INVOICE print's company address block now matches the user's corrected layout exactly: company name → address → (gap) → Contact: <phone>, Email: <email> → (gap) → Website: <url> → (gap) → VAT: <number>. The "Mobile:" label was changed to "Contact:" and 8px blank-line gaps were added between the address, contact, website, and VAT lines.
+
+---
+Task ID: SELL-PRINT-ADDRESS-V3-1
+Agent: main
+Task: Final correction of the SALES INVOICE company address block — remove blank-line gaps (lines tight together) and strip "https://" from the website URL
+
+Work Log:
+- User requested: lines tight together (no blank-line gaps) + Website line should show "www.rahmanenterprise.com" without "https://" prefix.
+- Updated `src/components/sell-invoice-print.tsx`:
+  - JSX: removed the three `<div class="spacer"></div>` separators before contact/website/VAT lines — they now follow the address line directly.
+  - Added a new `stripUrlScheme(url)` helper that strips the leading `https://` or `http://` and any trailing slashes.
+  - Website line now renders `stripUrlScheme(companyWebsite)` instead of raw `companyWebsite`.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser + VLM:
+  - VLM confirmed the company info block reads (line-by-line):
+    - Line 1: "Rahman Enterprise"
+    - Line 2: "House# 272B, 3rd Floor, Shahid Janani Jahanara Imam Sharani, Elephant Road,"
+    - Line 3: "Dhaka-1205"
+    - Line 4: "Contact: 01818675472, Email: rahmanenterprise@gmail.com"
+    - Line 5: "Website: www.rahmanenterprise.com" (no "https://" prefix)
+    - Line 6: "VAT: VAT-123456789"
+  - Verification: lines tight together (no gaps) ✓; website URL stripped of "https://" ✓.
+
+Stage Summary:
+- The SALES INVOICE print's company address block now matches the user's final corrected format exactly: company name → address → Contact: <phone>, Email: <email> → Website: <url-without-scheme> → VAT: <number>, all on consecutive lines with no blank-line gaps. The "https://" prefix is automatically stripped from the stored website URL so the printed line reads "www.rahmanenterprise.com".

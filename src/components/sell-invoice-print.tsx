@@ -295,10 +295,10 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
           <h1>${escape(companyName)}</h1>
           ${companyAddress ? `<p class="addr">${escape(companyAddress)}</p>` : ""}
           ${companyPhone || companyEmail
-            ? `<div class="spacer"></div><p class="contact">${companyPhone ? `<strong>Contact:</strong> ${escape(companyPhone)}` : ""}${companyPhone && companyEmail ? ", " : ""}${companyEmail ? `<strong>Email:</strong> ${escape(companyEmail)}` : ""}</p>`
+            ? `<p class="contact">${companyPhone ? `<strong>Contact:</strong> ${escape(companyPhone)}` : ""}${companyPhone && companyEmail ? ", " : ""}${companyEmail ? `<strong>Email:</strong> ${escape(companyEmail)}` : ""}</p>`
             : ""}
-          ${companyWebsite ? `<div class="spacer"></div><p class="contact"><strong>Website:</strong> ${escape(companyWebsite)}</p>` : ""}
-          ${companyVat ? `<div class="spacer"></div><p><strong>VAT:</strong> ${escape(companyVat)}</p>` : ""}
+          ${companyWebsite ? `<p class="contact"><strong>Website:</strong> ${escape(stripUrlScheme(companyWebsite))}</p>` : ""}
+          ${companyVat ? `<p><strong>VAT:</strong> ${escape(companyVat)}</p>` : ""}
         </div>
       </div>
       <div class="meta">
@@ -374,6 +374,10 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
   </div>
 </body>
 </html>`
+}
+
+function stripUrlScheme(url: string): string {
+  return String(url).replace(/^[a-zA-Z]+:\/\//, "").replace(/\/+$/, "")
 }
 
 function escape(s: string): string {
