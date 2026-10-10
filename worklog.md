@@ -1266,3 +1266,43 @@ Work Log:
 
 Stage Summary:
 - The Sell List's Print Invoice feature is back to the previous format (user-uploaded reference style with NO./PRODUCT SPECIFICATIONS/CONDITION/QTY/PRICE/TOTAL columns and badges for brand/model/serial/condition). The Sells module UI itself (row Print button + View dialog Print Invoice button + handlePrint handler) is unchanged — only the print HTML template was reverted.
+
+---
+Task ID: SELL-PRINT-ADDRESS-FORMAT-1
+Agent: main
+Task: Reformat the company address block in the SALES INVOICE print so it matches the user's exact layout
+
+Work Log:
+- User requested the address block follow this layout:
+  - Line 1: company name (large bold)
+  - Line 2: full address on a single line
+  - Line 3: `Mobile: <phone>, Email: <email>` (combined with comma)
+  - Line 4: `Website: <website>`
+- Inspected current company data via /api/company — DB already has matching data:
+  - name: "Rahman Enterprise"
+  - address: "House# 272B, 3rd Floor, Shahid Janani Jahanara Imam Sharani, Elephant Road, Dhaka-1205"
+  - phone: "01818675472"
+  - email: "rahmanenterprise@gmail.com"
+  - website: "https://www.rahmanenterprise.com"
+  - vatNo: "VAT-123456789"
+- Updated `src/components/sell-invoice-print.tsx`:
+  - CSS: added `.company .info .addr` and `.company .info .contact` classes with slightly darker text color for readability (vs the previous pale-gray `--info p` style); `.contact strong` for the "Mobile:"/"Email:"/"Website:" labels to make them stand out.
+  - JSX: refactored the company info block to render in the requested multi-line layout:
+    - `<h1>{companyName}</h1>` (Line 1)
+    - `<p class="addr">{companyAddress}</p>` (Line 2)
+    - Combined Mobile + Email on one line: `<p class="contact"><strong>Mobile:</strong> {phone}{comma if both}<strong>Email:</strong> {email}</p>` (Line 3)
+    - `<p class="contact"><strong>Website:</strong> {website}</p>` (Line 4)
+    - Optional VAT line (Line 5) preserved.
+  - Kept the safe HTML-escape behavior on all dynamic values.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser + VLM:
+  - VLM read the printed invoice line-by-line and confirmed:
+    - Line 1: "Rahman Enterprise"
+    - Line 2: "House# 272B, 3rd Floor, Shahid Janani Jahanara Imam Sharani, Elephant Road, Dhaka-1205"
+    - Line 3: "Mobile: 01818675472, Email: rahmanenterprise@gmail.com" (exact format)
+    - Line 4: "Website: https://www.rahmanenterprise.com"
+    - Line 5 (bonus): "VAT: VAT-123456789"
+  - Format check: ✅ matches user's specification.
+
+Stage Summary:
+- The SALES INVOICE print now shows the company address block in exactly the format the user requested: company name on line 1, full address on line 2, "Mobile: <phone>, Email: <email>" combined on line 3, "Website: <website>" on line 4. The labels Mobile/Email/Website are bold for emphasis. VAT line is shown below if the company has a VAT number set.

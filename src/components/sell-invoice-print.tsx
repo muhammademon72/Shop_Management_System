@@ -121,8 +121,11 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
       font-size: 20px;
       display: flex; align-items: center; justify-content: center;
     }
-    .company .info h1 { margin: 0; font-size: 20px; font-weight: 700; }
-    .company .info p { margin: 2px 0; color: #6b7280; font-size: 12px; }
+    .company .info h1 { margin: 0 0 2px 0; font-size: 20px; font-weight: 700; }
+    .company .info p { margin: 1px 0; color: #6b7280; font-size: 12px; }
+    .company .info .addr { color: #374151; }
+    .company .info .contact { color: #374151; }
+    .company .info .contact strong { color: #111827; font-weight: 600; }
     .meta { text-align: right; min-width: 220px; }
     .meta .title {
       font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 4px;
@@ -288,11 +291,12 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
         <div class="logo">${escape((companyName[0] || "S").toUpperCase())}</div>
         <div class="info">
           <h1>${escape(companyName)}</h1>
-          ${companyPhone ? `<p>${escape(companyPhone)}</p>` : ""}
-          ${companyEmail ? `<p>${escape(companyEmail)}</p>` : ""}
-          ${companyAddress ? `<p>${escape(companyAddress)}</p>` : ""}
-          ${companyWebsite ? `<p>${escape(companyWebsite)}</p>` : ""}
-          ${companyVat ? `<p>VAT: ${escape(companyVat)}</p>` : ""}
+          ${companyAddress ? `<p class="addr">${escape(companyAddress)}</p>` : ""}
+          ${companyPhone || companyEmail
+            ? `<p class="contact">${companyPhone ? `<strong>Mobile:</strong> ${escape(companyPhone)}` : ""}${companyPhone && companyEmail ? ", " : ""}${companyEmail ? `<strong>Email:</strong> ${escape(companyEmail)}` : ""}</p>`
+            : ""}
+          ${companyWebsite ? `<p class="contact"><strong>Website:</strong> ${escape(companyWebsite)}</p>` : ""}
+          ${companyVat ? `<p><strong>VAT:</strong> ${escape(companyVat)}</p>` : ""}
         </div>
       </div>
       <div class="meta">
