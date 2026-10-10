@@ -1192,3 +1192,40 @@ Work Log:
 
 Stage Summary:
 - The whole software now uses the picture's theme: light gray page background (#F3F4F6), dark charcoal sidebar (#1F2937) with emerald green active item highlight (#10B981), emerald accent color for primary buttons/links, and emerald→teal gradient on all 12 list page table headers. StatusBadge and existing emerald accents in dashboard/sells/purchases due-amount badges were already on emerald — now they all share a consistent emerald accent theme matching the picture.
+
+---
+Task ID: SELL-PRINT-INVOICE-1
+Agent: main
+Task: Add a "Print Invoice" feature to the Sell List that produces a printable invoice matching the user-uploaded reference format
+
+Work Log:
+- Used VLM to analyze the two uploaded invoice format images:
+  - Image 1 — header layout (company info left, status badge + Invoice No + Date right), supplier block bottom-left, payment gateway bottom-right.
+  - Image 2 — line items table columns: **NO. / PRODUCT SPECIFICATIONS / CONDITION / QUANTITY / PRICE / TOTAL**, with each row's Product Specifications cell containing the product name + small rounded badges for Brand / Model / Serial / Condition. Footer has Terms block (left) + Subtotal/Discount/Total Net Payable (right). No vertical grid lines — separation through whitespace.
+- **New file `src/components/sell-invoice-print.tsx`**: exports `printSellInvoice(sell, company)` which:
+  - Builds a complete HTML string with embedded CSS (emerald accent, sans-serif, A4-friendly layout).
+  - Opens it in a new browser tab via `window.open(...)` and calls `win.print()` after load.
+  - Header: green logo square + company name + phone/email/address/website/VAT (left); SALES INVOICE pill + "Sold Goods Invoice" title + Invoice No + Date (right); green 3px divider.
+  - Customer block: "Bill To" with name + mobile + address; "Payment" with PAID/PARTIAL/DUE status + paid + due.
+  - Line items table: NO. / PRODUCT SPECIFICATIONS / CONDITION / QUANTITY / PRICE / TOTAL — product specs cell has the product name + rounded badges (brand, model, serial, condition), condition column also gets a green pill, all numeric columns right-aligned.
+  - Footer split: left = "General Business Terms & Policies" gray box with 3 numbered terms; right = Subtotal / Discount (red) / Total Net Payable (emerald, separated by green top border) / Paid / Due.
+  - Signature lines: Customer Signature + Authorized Signature (dashed top border).
+  - `@media print` rules for A4 page + tighter padding; HTML-escaped all dynamic values for safety.
+- **Sells module** (`src/components/modules/sells.tsx`):
+  - Imported `Printer` from lucide-react, `printSellInvoice` from the new file, and `CompanyProfile` type.
+  - Added a new `useQuery` for `/api/company` (returns CompanyProfile | null).
+  - Added `handlePrint(row)` handler that calls `printSellInvoice(row, company)`.
+  - Added a green Printer icon button to the row Actions column (between View and Edit) with `text-emerald-600 hover:text-emerald-700`.
+  - Added a "Print Invoice" button to the View dialog footer (replacing the single Close button with a flex row: Close on left, Print Invoice on right — emerald background).
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser:
+  - Screenshot of the Sales list confirmed the green Print icon button appears between View (eye) and Edit (pencil) in the Actions column.
+  - Clicking the Print button opened a new tab titled "Invoice SAL-300002"; screenshot of the printed invoice confirmed:
+    - Header: "Rahman Enterprise" + SAL-300002 + Oct 01, 2026 ✓
+    - Table columns: NO. / PRODUCT SPECIFICATIONS / CONDITION / QTY / PRICE / TOTAL ✓
+    - Footer: Subtotal + Total Net Payable + Paid + Due ✓
+    - Customer Signature + Authorized Signature lines at the bottom ✓
+  - All elements confirmed present by VLM.
+
+Stage Summary:
+- The Sell List now has a one-click Print Invoice feature. A green Printer icon button was added to the row Actions column (between View and Edit), and a "Print Invoice" button was added to the View dialog footer. Clicking either opens a new browser tab with a fully-rendered printable invoice (company header + customer block + line items table with Brand/Model/Serial/Condition badges + footer with totals + signature lines) and triggers the browser's print dialog. The print layout matches the user-uploaded reference format: NO./PRODUCT SPECIFICATIONS/CONDITION/QTY/PRICE/TOTAL columns, green accents, no vertical grid lines, and emerald Total Net Payable. Company info comes from /api/company.

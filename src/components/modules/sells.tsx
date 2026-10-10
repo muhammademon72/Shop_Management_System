@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Pencil, Plus, Trash2, Eye, FileText, X, Loader2 } from "lucide-react"
+import { Pencil, Plus, Trash2, Eye, FileText, X, Loader2, Printer } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,7 +21,8 @@ import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { SearchableSelect } from "@/components/searchable-select"
 import { PageHeader } from "@/components/page-header"
-import type { Sell, SellItem, Customer, Product, Brand, Condition } from "@/lib/types"
+import { printSellInvoice } from "@/components/sell-invoice-print"
+import type { Sell, SellItem, Customer, Product, Brand, Condition, CompanyProfile } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
 
 interface ItemRow {
@@ -120,6 +121,16 @@ export function SellsModule() {
       const res = await fetch("/api/conditions")
       if (!res.ok) throw new Error("Failed")
       return res.json()
+    },
+  })
+
+  const { data: company } = useQuery<CompanyProfile | null>({
+    queryKey: ["company"],
+    queryFn: async () => {
+      const res = await fetch("/api/company")
+      if (!res.ok) throw new Error("Failed")
+      const data = await res.json()
+      return Array.isArray(data) ? (data[0] ?? null) : data
     },
   })
 
@@ -243,6 +254,10 @@ export function SellsModule() {
     })
     setOpen(true)
   }
+  const handlePrint = (row: Sell) => {
+    printSellInvoice(row, company ?? null)
+  }
+
   const handleSubmit = () => {
     if (!form.invoiceNo.trim()) {
       toast.error("Invoice No is required")
@@ -319,6 +334,9 @@ export function SellsModule() {
         <div className="flex items-center gap-1">
           <Button size="icon" variant="ghost" onClick={() => setViewing(row)} title="View">
             <Eye className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" onClick={() => handlePrint(row)} title="Print Invoice" className="text-emerald-600 hover:text-emerald-700">
+            <Printer className="h-4 w-4" />
           </Button>
           <Button size="icon" variant="ghost" onClick={() => handleEdit(row)} title="Edit">
             <Pencil className="h-4 w-4" />
@@ -566,7 +584,14 @@ export function SellsModule() {
         size="wide"
         maxHeight="80vh"
         hideFooter
-        footer={<Button variant="outline" onClick={() => setViewing(null)}>Close</Button>}
+        footer={
+          <div className="flex w-full items-center justify-between gap-2">
+            <Button variant="outline" onClick={() => setViewing(null)}>Close</Button>
+            <Button onClick={() => viewing && handlePrint(viewing)} className="bg-emerald-600 text-white hover:bg-emerald-700">
+              <Printer className="mr-2 h-4 w-4" /> Print Invoice
+            </Button>
+          </div>
+        }
       >
         {viewing && (
           <div className="flex flex-col gap-3">
