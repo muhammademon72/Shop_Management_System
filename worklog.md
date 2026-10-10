@@ -1306,3 +1306,19 @@ Work Log:
 
 Stage Summary:
 - The SALES INVOICE print now shows the company address block in exactly the format the user requested: company name on line 1, full address on line 2, "Mobile: <phone>, Email: <email>" combined on line 3, "Website: <website>" on line 4. The labels Mobile/Email/Website are bold for emphasis. VAT line is shown below if the company has a VAT number set.
+
+---
+Task ID: CURRENCY-BDT-1
+Agent: main
+Task: Change the app currency from USD ($) to BDT (Bangladeshi Taka)
+
+Work Log:
+- Updated `src/lib/format.ts` `formatCurrency` function:
+  - Locale: `en-US` → `en-IN` (Indian subcontinent number grouping: 12,34,567.50)
+  - Currency: `USD` → `BDT`
+  - Effect: amounts now render as "৳ 1,100.00" (in browsers with full ICU data) / "BDT 1,100.00" (where the ৳ symbol isn't in the bundled ICU). Grouping uses lakh/crore format (e.g. 25,000.00 not 25.000,00) which matches BDT conventions.
+- This is a single source of truth — every place in the app that calls `formatCurrency` (Sells list, Sales print invoice, Purchases, Quotations, Inventory, Dashboard, customers, suppliers, etc.) automatically updates.
+- Lint: clean (0 errors, 0 warnings). Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- All currency values across the entire app (tables, forms, dialogs, print invoices, dashboard totals) now render as BDT (Bangladeshi Taka) with the ৳ symbol and Indian-subcontinent number grouping (e.g., ৳ 1,100.00, ৳ 25,000.00, ৳ 12,34,567.50).
