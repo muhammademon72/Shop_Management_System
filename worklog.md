@@ -1247,3 +1247,22 @@ Work Log:
 
 Stage Summary:
 - The Customer dropdown in the New Sale form is now searchable. Customers are listed with their mobile number as a hint. Typing in the dropdown filters by customer name. A "— None —" option is included via `allowNone` to clear the selection (preserving the previous behavior).
+
+---
+Task ID: SELL-PRINT-REVERT-1
+Agent: main
+Task: Revert the Sell print invoice format to the previous version (the user-uploaded reference layout with NO./PRODUCT SPECIFICATIONS/CONDITION/QUANTITY/PRICE/TOTAL)
+
+Work Log:
+- User said "back to Previous" after I had reformatted `sell-invoice-print.tsx` to mirror the on-screen View dialog (header table + 8-column line items + Total Amount footer).
+- Restored `src/components/sell-invoice-print.tsx` to the previous version that mirrors the user-uploaded reference images:
+  - Header split: company info (logo + name + phone/email/address/website/VAT) on the left, SALES INVOICE pill + "Sold Goods Invoice" title + Invoice No + Date on the right, separated by a green 3px divider.
+  - Customer block: gray box with "Bill To" (name + mobile + address) on the left, "Payment" (PAID/PARTIAL/DUE + paid + due) on the right.
+  - Line items table: **NO. / Product Specifications / Condition / Qty / Price / Total** — product specs cell contains product name + rounded badges for Brand / Model / Serial / Condition. No vertical grid lines; separation via whitespace.
+  - Footer: gray "General Business Terms & Policies" box (3 numbered terms) on the left + financial totals on the right (Subtotal / Discount red / Total Net Payable emerald / Paid / Due).
+  - Signature lines: Customer Signature + Authorized Signature (dashed top border).
+- Lint: clean (0 errors, 0 warnings).
+- Dev server hot-reload: ✓ Compiled, HTTP 200.
+
+Stage Summary:
+- The Sell List's Print Invoice feature is back to the previous format (user-uploaded reference style with NO./PRODUCT SPECIFICATIONS/CONDITION/QTY/PRICE/TOTAL columns and badges for brand/model/serial/condition). The Sells module UI itself (row Print button + View dialog Print Invoice button + handlePrint handler) is unchanged — only the print HTML template was reverted.
