@@ -1585,3 +1585,34 @@ Work Log:
 
 Stage Summary:
 - The New Sale form's line-items Product dropdown now auto-fills Brand / Model / Serial / Condition from the matching inventory record the moment a product is picked. The data source is /api/inventory (which already includes brand/model/serial on each row), so no new API work was needed. If the user later picks "— None —" to clear the product, all four auto-filled fields reset back to empty. This pairs well with the previous change (only in-stock products appear in the dropdown), giving the seller a one-click fill of the item details.
+
+---
+Task ID: SALE-PRODUCT-SEARCH-BRAND-CONDITION-1
+Agent: main
+Task: Three changes to New Sale form — (1) Product search matches both Product Name and Serial Number; (2) Brand dropdown closed (shown as read-only text); (3) Condition auto-fills with the product selection (with a sensible fallback)
+
+Work Log:
+- **(1) Product search by serial number**:
+  - Added a new optional `searchValue?: string` field to `SearchableSelectOption` in `src/components/searchable-select.tsx`. When set, the option's search index becomes `[label, hint, searchValue].filter(Boolean).join(" ")` — so the user can search by any of these without the searchValue cluttering the visible hint.
+  - In `sells.tsx` Product options, set `searchValue: inv?.serial ?? ""` so the inventory record's serial number becomes searchable. Hint still shows "In stock: N <uom>" for the visual UI; serial is searchable but not displayed next to the option.
+  - Updated `searchPlaceholder` from "Search product..." → "Search product / serial..." to make the dual-purpose search obvious.
+- **(2) Brand dropdown closed**:
+  - Removed the Brand `<SearchableSelect>` from the line-items table cell.
+  - Replaced with a read-only `<div>` showing `{it.brand || "—"}` with muted-foreground styling when empty. Cell height/min-width preserved (`h-8 min-w-[100px]`) so the row layout doesn't shift.
+  - Brand is still auto-filled from the inventory record via `handleProductChange` — it's just no longer user-editable via a dropdown. To change brand the user picks a different product.
+  - The `brands` query is kept (it populates the React Query cache that other modules like Purchases/Quotations/Inventory use) but no longer rendered in this form.
+- **(3) Condition auto-fill with fallback**:
+  - Updated `handleProductChange` so that when an inventory record has `condition: null` (which is the case for the Laptop Computer record in the live DB), it falls back to the first active condition from `/api/conditions` (whichever is returned first by the API — currently "Refurbished"). Previously `inv.condition ?? ""` would leave Condition empty in this case.
+  - Logic: `condition: inv?.condition || fallbackCondition` where `fallbackCondition = (conditions ?? []).find((c) => c.status === "Active")?.name ?? ""`.
+  - Net effect: Condition is now always populated when a product is selected (either from inventory record's condition OR from the first active condition in the system).
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser + VLM:
+  - **Serial search**: typed "21092026" into the product dropdown search box → "Laptop Computer" remained as a matching option (because its inventory serial is 21092026).
+  - **Brand closed**: after selecting Laptop Computer, the Brand cell shows "Dell" as plain read-only text with no chevron icon (vs. the previous SearchableSelect dropdown).
+  - **Condition auto-filled**: after selecting Laptop Computer, the Condition cell shows "Refurbished" (which is the first active condition in /api/conditions — fallback kicks in because the laptop's inventory record has condition=null).
+
+Stage Summary:
+- Three changes to the New Sale form's line-items table:
+  1. The Product dropdown's search box now matches BOTH product name AND serial number (e.g. typing "21092026" finds the Laptop Computer).
+  2. The Brand column is no longer a dropdown — it's a read-only text display showing the inventory-record's brand. Brand is still auto-filled when a product is picked.
+  3. The Condition field is always auto-filled when a product is selected: it uses the inventory record's condition if present, otherwise falls back to the first active condition in /api/conditions. No more empty Condition after product selection.

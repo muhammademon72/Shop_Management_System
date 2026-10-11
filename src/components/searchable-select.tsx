@@ -23,6 +23,12 @@ export interface SearchableSelectOption {
   value: string
   label: string
   hint?: string
+  /** Optional extra text appended to the search index for this option (in
+   * addition to label and hint). Useful when you want search to match an
+   * identifier like a serial number without cluttering the visible hint
+   * (e.g. label="Laptop Computer", hint="In stock: 1 Piece",
+   * searchValue="SN-21092026" lets the user search by the product's serial). */
+  searchValue?: string
 }
 
 interface SearchableSelectProps {
@@ -124,9 +130,9 @@ export function SearchableSelect({
             )}
             <CommandGroup>
               {options.map((opt) => {
-                const searchValue = opt.hint
-                  ? `${opt.label} ${opt.hint}`
-                  : opt.label
+                const searchValue = [opt.label, opt.hint, opt.searchValue]
+                  .filter(Boolean)
+                  .join(" ")
                 return (
                   <CommandItem
                     key={opt.value}

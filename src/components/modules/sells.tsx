@@ -160,18 +160,17 @@ export function SellsModule() {
       return
     }
     const inv = inventoryByProduct.get(pid)
-    if (inv) {
-      updateItem(idx, {
-        productId: pid,
-        brand: inv.brand ?? "",
-        model: inv.model ?? "",
-        serial: inv.serial ?? "",
-        condition: inv.condition ?? "",
-      })
-    } else {
-      // No inventory record found — just set the productId, leave other fields
-      updateItem(idx, { productId: pid })
-    }
+    // If the inventory record has a condition use it; otherwise fall back to
+    // the first active condition from /api/conditions (typically "New").
+    const fallbackCondition =
+      (conditions ?? []).find((c) => (c.status ?? "Active") === "Active")?.name ?? ""
+    updateItem(idx, {
+      productId: pid,
+      brand: inv?.brand ?? "",
+      model: inv?.model ?? "",
+      serial: inv?.serial ?? "",
+      condition: inv?.condition || fallbackCondition,
+    })
   }
 
   const { data: brands } = useQuery<Brand[]>({
@@ -522,13 +521,20 @@ export function SellsModule() {
                         <SearchableSelect
                           value={it.productId}
                           onValueChange={(v) => handleProductChange(idx, v ?? undefined)}
-                          options={inStockProducts.map((p) => ({
-                            value: p.id,
-                            label: p.name,
-                            hint: `In stock: ${stockByProduct.get(p.id) ?? 0}${p.uom?.name ? ` ${p.uom.name}` : ""}`,
-                          }))}
+                          options={inStockProducts.map((p) => {
+                            const inv = inventoryByProduct.get(p.id)
+                            return {
+                              value: p.id,
+                              label: p.name,
+                              hint: `In stock: ${stockByProduct.get(p.id) ?? 0}${p.uom?.name ? ` ${p.uom.name}` : ""}`,
+                              // Include the inventory record's serial in the
+                              // search index so the user can find a product by
+                              // typing either its name OR its serial number.
+                              searchValue: inv?.serial ?? "",
+                            }
+                          })}
                           placeholder="Select"
-                          searchPlaceholder="Search product..."
+                          searchPlaceholder="Search product / serial..."
                           emptyText="No in-stock products found."
                           allowNone
                           noneLabel="— None —"
@@ -537,18 +543,15 @@ export function SellsModule() {
                         />
                       </td>
                       <td className="border border-gray-300 p-1">
-                        <SearchableSelect
-                          value={it.brand || null}
-                          onValueChange={(v) => updateItem(idx, { brand: v ?? "" })}
-                          options={(brands ?? []).map((b) => ({ value: b.name, label: b.name }))}
-                          placeholder="—"
-                          searchPlaceholder="Search brand..."
-                          emptyText="No brand found."
-                          allowNone
-                          noneLabel="—"
-                          compact
-                          triggerClassName="min-w-[100px]"
-                        />
+                        {/* Brand is auto-filled from the inventory record and
+                            shown read-only (per "Brand Dropdown close koro").
+                            If the user needs to override it they can use the
+                            Product dropdown to pick a different product. */}
+                        <div className="h-8 min-w-[100px] flex items-center px-1 text-xs text-foreground">
+                          <span className={it.brand ? "" : "text-muted-foreground"}>
+                            {it.brand || "—"}
+                          </span>
+                        </div>
                       </td>
                       <td className="border border-gray-300 p-1">
                         <Input value={it.model} onChange={(e) => updateItem(idx, { model: e.target.value })} className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0" />
