@@ -1496,3 +1496,24 @@ Work Log:
 
 Stage Summary:
 - The Dashboard now fits on a single page without any scrolling on the main content area. The Quick Actions card was merged into the header (buttons inline at the top-right). KPI cards are now compact (7 cards in a single row on desktop, 2 columns on small screens). The Recent Purchases / Recent Sales tables are inside cards that fill the remaining viewport height — if any list is long, only that card's table region scrolls internally (not the whole page). The sidebar already scrolls independently via ScrollArea, so the user's "only Menu bar Caroling hobe" requirement is satisfied.
+
+---
+Task ID: PURCHASE-UPLOAD-FIX-1
+Agent: main
+Task: Fix "Invalid response from upload endpoint" error when attaching a file in the New Purchase form
+
+Work Log:
+- **Root cause**: The `/api/upload` route file was missing from `src/app/api/upload/route.ts` (it had been lost after the previous session restart). Without a real POST handler, Next.js 16 fell back to treating the POST as a server action lookup and returned `Server action not found.` (HTTP 404 with `x-nextjs-action-not-found: 1` header). The FileUpload component received that text response instead of JSON, so `JSON.parse(xhr.responseText)` threw → the user saw "Invalid response from upload endpoint".
+- **Fix**:
+  - Recreated `/home/z/my-project/src/app/api/upload/route.ts` with the full POST handler (whitelist buckets: purchases/logos/company/misc, 10 MB cap, saves to /public/uploads/<bucket>/<timestamp>_<safe-name>, returns `{ url, name, size, type }`). Also added an explicit GET handler that returns 405 (so the route is never mistaken for a missing server action again).
+  - Cleared the Next.js build cache (`rm -rf .next`) — the cached route table was still pointing at a non-existent upload route and would have kept returning 404 until rebuilt.
+  - Stopped any stale `next` processes and restarted the dev server via the Python double-fork daemon (setsid approach didn't survive across shells).
+- **Verification**:
+  - `curl -X POST /api/upload?bucket=purchases -F file=@logo.svg` → `{"url":"/uploads/purchases/1791711664581_logo.svg","name":"logo.svg","size":1065,"type":"image/svg+xml"}` ✓
+  - Browser test via agent-browser:
+    1. Opened New Purchase form (verified "Click to upload" dashed box visible).
+    2. Dispatched a synthetic change event on the hidden file input with the previously-uploaded logo.svg.
+    3. VLM confirmed: "there is an uploaded file shown. Specifically, you can see: a file icon/thumbnail, the file name: test-logo.svg, the file size: 1.0 KB, a red X button on the right side. There is no error message visible — the file has been successfully uploaded and is displayed with its details."
+
+Stage Summary:
+- The "Invalid response from upload endpoint" error is fixed. The New Purchase form's Attach File upload now works correctly — picking a file uploads it to /uploads/purchases/ and shows the filename, size, and a delete (X) button inline. The fix also re-enables the Logo Attach button in Company Profile (which uses the same /api/upload endpoint with bucket=logos) and any other FileUpload usages. As a side note, the .next cache clear is important whenever routes are added/removed after a hot-reload session — without it, Next.js can keep returning 404 for newly-added routes.

@@ -7,13 +7,13 @@ import { existsSync } from "fs"
  * POST /api/upload
  * Accepts a single file upload via multipart/form-data (field name: "file").
  * Saves the file under /public/uploads/<bucket>/<timestamp>_<filename> and
- * returns { url, name, size } on success.
+ * returns { url, name, size, type } on success.
  *
  * Query param `bucket` (optional, default "purchases") selects the upload
  * subfolder — e.g. /api/upload?bucket=logos saves to /public/uploads/logos/.
  *
- * Used by the FileUpload component (Purchases attachments) and the Logo
- * "Attach" button in Company Profile.
+ * Used by the FileUpload component (Purchases attachments) and the LogoAttach
+ * button in Company Profile.
  */
 
 const MAX_BYTES = 10 * 1024 * 1024 // 10 MB
@@ -60,4 +60,9 @@ export async function POST(req: Request) {
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }
+}
+
+// Reject GET so it doesn't get auto-routed as a server action
+export async function GET() {
+  return NextResponse.json({ error: "Method Not Allowed — use POST" }, { status: 405 })
 }
