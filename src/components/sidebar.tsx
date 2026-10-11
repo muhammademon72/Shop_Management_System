@@ -25,6 +25,7 @@ import {
   Store,
   ShieldCheck,
   Clock,
+  ChevronRight,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -94,6 +95,14 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
   const setActiveModule = useAppStore((s) => s.setActiveModule)
   const pathname = usePathname()
 
+  // Collapsible group state — keyed by group name. Only groups with more
+  // than one item are collapsible (single-item groups like "Dashboard" stay
+  // always visible). Default = expanded so first paint looks the same as
+  // before.
+  const [collapsedGroups, setCollapsedGroups] = React.useState<Record<string, boolean>>({})
+  const toggleGroup = (group: string) =>
+    setCollapsedGroups((prev) => ({ ...prev, [group]: !prev[group] }))
+
   const handleSelect = (id: ModuleId) => {
     setActiveModule(id)
     onNavigate?.()
@@ -115,41 +124,65 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
 
       <ScrollArea className="flex-1 px-2 py-3">
         <nav className="flex flex-col gap-4">
-          {NAV.map((group) => (
-            <div key={group.group} className="flex flex-col gap-1">
-              <div className="px-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                {group.group}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                {group.items.map((item) => {
-                  const Icon = item.icon
-                  const isActive = activeModule === item.id
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleSelect(item.id)}
+          {NAV.map((group) => {
+            const isCollapsible = group.items.length > 1
+            const isCollapsed = isCollapsible && collapsedGroups[group.group]
+            return (
+              <div key={group.group} className="flex flex-col gap-1">
+                {isCollapsible ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.group)}
+                    aria-expanded={!isCollapsed}
+                    title={isCollapsed ? `Expand ${group.group}` : `Collapse ${group.group}`}
+                    className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  >
+                    <span className="truncate">{group.group}</span>
+                    <ChevronRight
                       className={cn(
-                        "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors",
-                        isActive
-                          ? "bg-emerald-600 text-white"
-                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                        "h-3.5 w-3.5 shrink-0 transition-transform",
+                        isCollapsed ? "rotate-0" : "rotate-90"
                       )}
-                    >
-                      <Icon
-                        className={cn(
-                          "h-4 w-4 shrink-0",
-                          isActive
-                            ? "text-white"
-                            : "text-sidebar-foreground/60"
-                        )}
-                      />
-                      <span className="truncate">{item.label}</span>
-                    </button>
-                  )
-                })}
+                    />
+                  </button>
+                ) : (
+                  <div className="px-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+                    {group.group}
+                  </div>
+                )}
+                {!isCollapsed && (
+                  <div className="flex flex-col gap-0.5">
+                    {group.items.map((item) => {
+                      const Icon = item.icon
+                      const isActive = activeModule === item.id
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => handleSelect(item.id)}
+                          className={cn(
+                            "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors",
+                            isActive
+                              ? "bg-emerald-600 text-white"
+                              : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                          )}
+                        >
+                          <Icon
+                            className={cn(
+                              "h-4 w-4 shrink-0",
+                              isActive
+                                ? "text-white"
+                                : "text-sidebar-foreground/60"
+                            )}
+                          />
+                          <span className="truncate">{item.label}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            )
+          })}
         </nav>
       </ScrollArea>
 

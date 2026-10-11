@@ -1517,3 +1517,28 @@ Work Log:
 
 Stage Summary:
 - The "Invalid response from upload endpoint" error is fixed. The New Purchase form's Attach File upload now works correctly — picking a file uploads it to /uploads/purchases/ and shows the filename, size, and a delete (X) button inline. The fix also re-enables the Logo Attach button in Company Profile (which uses the same /api/upload endpoint with bucket=logos) and any other FileUpload usages. As a side note, the .next cache clear is important whenever routes are added/removed after a hot-reload session — without it, Next.js can keep returning 404 for newly-added routes.
+
+---
+Task ID: SIDEBAR-COLLAPSIBLE-1
+Agent: main
+Task: Make the "Product Manage" menu group collapsible — clicking the group header hides its submenus, clicking again shows them
+
+Work Log:
+- Updated `src/components/sidebar.tsx` to make multi-item nav groups collapsible:
+  - Imported `ChevronRight` from lucide-react (used as the rotate indicator).
+  - Added React state `collapsedGroups: Record<string, boolean>` keyed by group name; default = `{}` (all expanded).
+  - Added `toggleGroup(group)` helper that flips the boolean for the given group.
+  - In the render loop, group headers now branch on `isCollapsible = group.items.length > 1`:
+    - **Collapsible groups** (Product Manage, Purchase Manage, Sell Manage, Settings Manage — all multi-item groups): the static `<div>` header is replaced by a clickable `<button>` with `onClick={() => toggleGroup(group.group)}`, an `aria-expanded={!isCollapsed}`, and a `ChevronRight` icon that rotates 90° when expanded (rotate-90) vs 0° when collapsed (rotate-0). Hover effect: `hover:bg-sidebar-accent hover:text-sidebar-foreground` so the toggle affordance is obvious.
+    - **Single-item groups** (Dashboard) stay as a static `<div>` header — not collapsible since there's nothing to hide.
+  - The submenu items render conditionally: `{!isCollapsed && <div className="flex flex-col gap-0.5">…</div>}` — when collapsed, the submenu buttons are not in the DOM (saves vertical space).
+  - Default state: all groups expanded — first paint matches the previous behavior.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser + VLM (3 screenshots):
+  1. **Default (expanded)**: all items under "PRODUCT MANAGE" visible; chevron points down (rotate-90).
+  2. **After first click (collapsed)**: the 6 sub-items (Categories List / Brand List / UOM List / Product List / Condition List / Warranty List) are hidden; chevron rotated to point right (rotate-0); other groups (Purchase Manage / Sell Manage / Settings Manage) still showing their items.
+  3. **After second click (re-expanded)**: all 6 sub-items visible again — toggle is bidirectional.
+  - VLM confirmed all three states correctly.
+
+Stage Summary:
+- The sidebar's multi-item menu groups (Product Manage, Purchase Manage, Sell Manage, Settings Manage) are now collapsible. Clicking the group header (with the chevron icon) hides its submenu items; clicking again re-expands them. The chevron rotates 90° when expanded, 0° when collapsed, giving a clear visual affordance. Single-item groups like Dashboard remain always expanded. All four multi-item groups use the same pattern, so the user can collapse any of them — the request specifically mentioned "Product Manage" but the implementation covers the other groups too for consistency.
