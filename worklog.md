@@ -1542,3 +1542,25 @@ Work Log:
 
 Stage Summary:
 - The sidebar's multi-item menu groups (Product Manage, Purchase Manage, Sell Manage, Settings Manage) are now collapsible. Clicking the group header (with the chevron icon) hides its submenu items; clicking again re-expands them. The chevron rotates 90° when expanded, 0° when collapsed, giving a clear visual affordance. Single-item groups like Dashboard remain always expanded. All four multi-item groups use the same pattern, so the user can collapse any of them — the request specifically mentioned "Product Manage" but the implementation covers the other groups too for consistency.
+
+---
+Task ID: SALE-PRODUCT-STOCK-ONLY-1
+Agent: main
+Task: In the New Sale form, only show products that have stock in the Inventory Stock list in the Product dropdown
+
+Work Log:
+- User requirement: New Sale form's Product dropdown should show products that currently exist in Inventory Stock (i.e., products with positive stock-on-hand), not the entire products master list.
+- **Imports** (`src/components/modules/sells.tsx`): added `InventoryStock` to the type imports.
+- **New query** (lines 109-116): added `useQuery<InventoryStock[]>` against `/api/inventory` (same endpoint the Inventory Stock page uses).
+- **Stock aggregation** (lines 118-126): `stockByProduct = React.useMemo(...)` — a `Map<productId, totalQty>` summing all inventory rows per product. Handles `inv.qty || 0` for safety and skips rows without a productId.
+- **Filter to in-stock products** (lines 128-134): `inStockProducts = React.useMemo(...)` — filters `products` to only those whose `stockByProduct.get(p.id) > 0`. Out-of-stock products are completely hidden from the dropdown.
+- **Dropdown options** (lines 480-497 in the form's line-items table): replaced `(products ?? []).map((p) => ({ value: p.id, label: p.name, hint: p.category?.name }))` with `inStockProducts.map((p) => ({ value: p.id, label: p.name, hint: \`In stock: ${qty} ${uom}\` }))`. The hint now shows actual stock-on-hand quantity + unit (e.g. "In stock: 1 Piece") so the user can see at a glance how much is available.
+- Changed `emptyText` from "No product found." → "No in-stock products found." to make the empty state clearer.
+- Widened the trigger slightly from `min-w-[140px]` → `min-w-[160px]` so the longer hint fits.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser + VLM:
+  - Opened the New Sale form, expanded the Product dropdown.
+  - VLM confirmed the dropdown shows only "— None —" and "Laptop Computer", with the hint "In stock: 1 Piece" next to Laptop Computer. Out-of-stock products are no longer listed.
+
+Stage Summary:
+- The New Sale form's line-items Product dropdown now shows only products with positive stock-on-hand (as aggregated from the Inventory Stock records). Each option carries an "In stock: <qty> <uom>" hint so the seller can see the available quantity at a glance. Products without inventory are hidden entirely (preventing the seller from picking a product they can't deliver). The "— None —" option is preserved for clearing the selection. The change is purely UI — no schema or API changes were needed (existing /api/products and /api/inventory endpoints suffice).

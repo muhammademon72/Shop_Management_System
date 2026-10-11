@@ -22,7 +22,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { SearchableSelect } from "@/components/searchable-select"
 import { PageHeader } from "@/components/page-header"
 import { printSellInvoice } from "@/components/sell-invoice-print"
-import type { Sell, SellItem, Customer, Product, Brand, Condition, CompanyProfile } from "@/lib/types"
+import type { Sell, SellItem, Customer, Product, Brand, Condition, CompanyProfile, InventoryStock } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
 
 interface ItemRow {
@@ -105,6 +105,33 @@ export function SellsModule() {
       return res.json()
     },
   })
+
+  const { data: inventory } = useQuery<InventoryStock[]>({
+    queryKey: ["inventory"],
+    queryFn: async () => {
+      const res = await fetch("/api/inventory")
+      if (!res.ok) throw new Error("Failed")
+      return res.json()
+    },
+  })
+
+  // Stock-on-hand per product — aggregated from /api/inventory.
+  const stockByProduct = React.useMemo(() => {
+    const map = new Map<string, number>()
+    for (const inv of inventory ?? []) {
+      if (!inv.productId) continue
+      map.set(inv.productId, (map.get(inv.productId) ?? 0) + (inv.qty || 0))
+    }
+    return map
+  }, [inventory])
+
+  // Only products that currently have stock on hand should appear in the
+  // New Sale Product dropdown — mirrors the user's requirement: "Inventory
+  // Stock er product show korbe".
+  const inStockProducts = React.useMemo(
+    () => (products ?? []).filter((p) => (stockByProduct.get(p.id) ?? 0) > 0),
+    [products, stockByProduct]
+  )
 
   const { data: brands } = useQuery<Brand[]>({
     queryKey: ["brands"],
@@ -454,14 +481,18 @@ export function SellsModule() {
                         <SearchableSelect
                           value={it.productId}
                           onValueChange={(v) => updateItem(idx, { productId: v ?? "" })}
-                          options={(products ?? []).map((p) => ({ value: p.id, label: p.name, hint: p.category?.name }))}
+                          options={inStockProducts.map((p) => ({
+                            value: p.id,
+                            label: p.name,
+                            hint: `In stock: ${stockByProduct.get(p.id) ?? 0}${p.uom?.name ? ` ${p.uom.name}` : ""}`,
+                          }))}
                           placeholder="Select"
                           searchPlaceholder="Search product..."
-                          emptyText="No product found."
+                          emptyText="No in-stock products found."
                           allowNone
                           noneLabel="— None —"
                           compact
-                          triggerClassName="min-w-[140px]"
+                          triggerClassName="min-w-[160px]"
                         />
                       </td>
                       <td className="border border-gray-300 p-1">
