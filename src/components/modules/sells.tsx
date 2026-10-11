@@ -133,6 +133,47 @@ export function SellsModule() {
     [products, stockByProduct]
   )
 
+  // First inventory record for each productId — used to auto-fill
+  // Brand / Model / Serial / Condition when the user picks a product in
+  // the New Sale line-items table. We pick the first matching inventory
+  // record (since stock is typically batched one row per physical unit).
+  const inventoryByProduct = React.useMemo(() => {
+    const map = new Map<string, InventoryStock>()
+    for (const inv of inventory ?? []) {
+      if (inv.productId && !map.has(inv.productId)) {
+        map.set(inv.productId, inv)
+      }
+    }
+    return map
+  }, [inventory])
+
+  const handleProductChange = (idx: number, pid: string | undefined) => {
+    if (!pid) {
+      // Product cleared — clear the auto-filled fields too so the row resets
+      updateItem(idx, {
+        productId: null,
+        brand: "",
+        model: "",
+        serial: "",
+        condition: "",
+      })
+      return
+    }
+    const inv = inventoryByProduct.get(pid)
+    if (inv) {
+      updateItem(idx, {
+        productId: pid,
+        brand: inv.brand ?? "",
+        model: inv.model ?? "",
+        serial: inv.serial ?? "",
+        condition: inv.condition ?? "",
+      })
+    } else {
+      // No inventory record found — just set the productId, leave other fields
+      updateItem(idx, { productId: pid })
+    }
+  }
+
   const { data: brands } = useQuery<Brand[]>({
     queryKey: ["brands"],
     queryFn: async () => {
@@ -480,7 +521,7 @@ export function SellsModule() {
                       <td className="border border-gray-300 p-1">
                         <SearchableSelect
                           value={it.productId}
-                          onValueChange={(v) => updateItem(idx, { productId: v ?? "" })}
+                          onValueChange={(v) => handleProductChange(idx, v ?? undefined)}
                           options={inStockProducts.map((p) => ({
                             value: p.id,
                             label: p.name,

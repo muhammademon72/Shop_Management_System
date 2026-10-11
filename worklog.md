@@ -1564,3 +1564,24 @@ Work Log:
 
 Stage Summary:
 - The New Sale form's line-items Product dropdown now shows only products with positive stock-on-hand (as aggregated from the Inventory Stock records). Each option carries an "In stock: <qty> <uom>" hint so the seller can see the available quantity at a glance. Products without inventory are hidden entirely (preventing the seller from picking a product they can't deliver). The "— None —" option is preserved for clearing the selection. The change is purely UI — no schema or API changes were needed (existing /api/products and /api/inventory endpoints suffice).
+
+---
+Task ID: SALE-PRODUCT-AUTOFILL-1
+Agent: main
+Task: In the New Sale form, when a product is selected in the line-items table, auto-fill Brand / Model / Serial / Condition from the matching Inventory Stock record
+
+Work Log:
+- User requirement: "Product select korle Brand, Model, Serial, Condition auto fill hobe".
+- Added a new memo `inventoryByProduct` in `src/components/modules/sells.tsx` (lines 140-148): builds a `Map<productId, InventoryStock>` keyed by productId, picking the FIRST inventory record for each product (since stock is typically one row per physical unit). Falls back to subsequent records only if the first is missing.
+- Added a `handleProductChange(idx, pid)` handler (lines 150-175):
+  - If `pid` is empty/undefined (user picked "— None —"): clears `productId`, `brand`, `model`, `serial`, `condition` together — so the row fully resets.
+  - If `pid` is set and an inventory record exists: calls `updateItem(idx, { productId: pid, brand: inv.brand ?? "", model: inv.model ?? "", serial: inv.serial ?? "", condition: inv.condition ?? "" })` — auto-fills all four fields from the inventory record.
+  - If no inventory record exists for the pid (shouldn't happen since dropdown only shows in-stock products, but defensive): falls back to `updateItem(idx, { productId: pid })` so the user can still pick the product and fill other fields manually.
+- Wired the SearchableSelect's `onValueChange` in the line-items table to call `handleProductChange(idx, v ?? undefined)` instead of the previous `updateItem(idx, { productId: v ?? "" })`.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser + VLM:
+  - BEFORE selecting a product: Brand / Model / Serial / Condition all empty or "—"; Product shows "Select"; Qty=1, Price=0, Total=BDT 0.00.
+  - AFTER selecting "Laptop Computer": Product = "Laptop Computer"; Brand = "Dell"; Model = "Dell Latitude 5400 C..."; Serial = "21092026"; Condition = "—" (empty because the underlying inventory record has condition=null; if the inventory record has a condition it would auto-fill too).
+
+Stage Summary:
+- The New Sale form's line-items Product dropdown now auto-fills Brand / Model / Serial / Condition from the matching inventory record the moment a product is picked. The data source is /api/inventory (which already includes brand/model/serial on each row), so no new API work was needed. If the user later picks "— None —" to clear the product, all four auto-filled fields reset back to empty. This pairs well with the previous change (only in-stock products appear in the dropdown), giving the seller a one-click fill of the item details.
