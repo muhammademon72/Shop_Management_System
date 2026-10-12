@@ -1672,3 +1672,21 @@ Stage Summary:
   - LEFT: large bold "Warranties" label → search input ("Search warranties...")
   - RIGHT: "Add Warranty" button
 - Same pattern as Brands, Categories, UOMs, Purchases, Products, Conditions pages.
+
+---
+Task ID: SELL-PRINT-REMOVE-REFURB-DUP-1
+Agent: main
+Task: Remove the duplicate "Refurbished" badge from the Sell print invoice (it was appearing in both the Product Specifications column and the Condition column)
+
+Work Log:
+- User reported (via screenshot pasted_image_1791805287065.png) that the printed Sales Invoice shows "Refurbished" twice for each row — once as a badge in the Product Specifications cell (under Serial) and again as a pill in the Condition column.
+- VLM analysis confirmed the duplicate location.
+- Root cause in `src/components/sell-invoice-print.tsx`: line 66 was `if (condition) badges.push(\`<span class="badge condition">${escape(condition)}</span>\`)` — adding a condition badge to the product-spec cell. The same `condition` value was also rendered separately on line 75 as `<span class="pill green">${escape(condition)}</span>` in the Condition column. Result: duplicate rendering.
+- **Fix**: removed the condition badge from the product-spec badges array (line 66 deleted). Condition still renders once in the Condition column (line 75, unchanged). Added an inline comment explaining why condition is intentionally excluded from the product-spec badges to prevent regression.
+- Lint: clean (0 errors, 0 warnings) — the `condition` variable is still used on line 75 (Condition column), so no "unused variable" warning.
+- Visual verification via agent-browser + VLM:
+  - Opened a Sell print invoice, took a screenshot.
+  - VLM confirmed: "Badges below the product name: Brand: Dell, Model: Dell Latitude 5400..., Serial: 21092026. Condition column: Refurbished. It appears once."
+
+Stage Summary:
+- The Sell print invoice no longer duplicates "Refurbished" (or any condition value) in the Product Specifications column. The condition now appears exactly once, in the dedicated Condition column on the right side of the line-items table. The Brand / Model / Serial badges under the product name are unchanged.

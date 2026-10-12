@@ -63,7 +63,10 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
         if (brand) badges.push(`<span class="badge brand">Brand: ${escape(brand)}</span>`)
         if (model) badges.push(`<span class="badge model">Model: ${escape(model)}</span>`)
         if (serial) badges.push(`<span class="badge serial">Serial: ${escape(serial)}</span>`)
-        if (condition) badges.push(`<span class="badge condition">${escape(condition)}</span>`)
+        // NOTE: condition is intentionally NOT included in the product-spec
+        // badges — it already appears in the dedicated "Condition" column on
+        // the right, so duplicating it here was redundant (the user reported
+        // "Refurbished" appearing twice and asked to remove the duplicate).
 
         return `
           <tr>
