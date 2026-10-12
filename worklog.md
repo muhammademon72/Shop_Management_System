@@ -1730,3 +1730,36 @@ Work Log:
 
 Stage Summary:
 - The sidebar now has a new "Report Manage" group between "Sell Manage" and "Settings Manage" containing two collapsible menu items: "Purchase Report" and "Delivery Report". Both modules render full reports with filter bars, 5 KPI cards each, a main data table, and two breakdown tables (Top Suppliers/Customers + Top Products). Each module has a "Print Report" button that opens an A4-friendly print layout. The "Report Manage" group is also collapsible like the other multi-item groups (Product Manage, Purchase Manage, Sell Manage, Settings Manage).
+
+---
+Task ID: SELL-INVENTORY-MOVEMENT-1
+Agent: main
+Task: After saving a Sell, decrement the corresponding product's quantity in Inventory Stock (FIFO). After editing/deleting a Sell, restore the quantity back to Inventory.
+
+Work Log:
+- **Discovery**: Purchase → Inventory add was ALREADY IMPLEMENTED in `/api/purchases/route.ts` (POST/PUT both auto-create InventoryStock rows for each line item with qty > 0, including UOM lookup). The user's first requirement was satisfied by existing code. The TODO for the Sell side (`// TODO: optionally decrement inventory when a Sell is saved`) was the only missing piece.
+- **Updates to `/api/sells/route.ts`**:
+  - Added two helper functions (file scope):
+    1. `decrementInventory(tx, productId, qtyToDecrement)` — pulls from the earliest inventory rows for that product (FIFO via `orderBy: { createdAt: "asc" }`). For each row, take min(row.qty, remaining); if the row hits qty 0 → delete the row, else update qty. If we run out of stock before consuming the full qty, the function silently exits (we don't block the sell — the user might be selling pre-booked items).
+    2. `restoreInventory(tx, productId, qtyToRestore, brand, model, serial, uomName, invoice, date)` — creates a NEW InventoryStock row with `remarks: "Restored from Sell (edit/delete)"` so the audit trail is visible.
+  - **POST**: wrapped the existing `tx.sell.create` in a `db.$transaction(async (tx) => {...})` block. After creating the sell, loops over each item with a productId and qty > 0 and calls `decrementInventory`. All in a single transaction — if anything fails, the whole sell is rolled back and inventory stays consistent.
+  - **PUT** (Sell edit): also wrapped in `db.$transaction`. New flow: (1) capture old sell items via `tx.sell.findUnique({ include: { items: true } })`, (2) for each OLD item, call `restoreInventory` (puts the units back), (3) delete old SellItem rows, (4) update the sell with the new payload, (5) for each NEW item, call `decrementInventory`. Net effect: inventory reflects the diff between old and new line items.
+  - **DELETE**: wrapped in `db.$transaction`. Captures the sell's items, restores their qty to inventory, then deletes the sell. SellItem rows cascade-delete via Prisma relation.
+  - Both helpers use the `tx` argument so all writes happen inside the surrounding transaction — atomicity guaranteed.
+- **No schema changes needed**: InventoryStock already has all the required fields (productId, qty, brand, model, serial, uom). The existing `purchaseId` cascade-delete continues to work for purchases.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- **Live verification** (3 manual curl tests):
+  1. Before: 1 inventory row (Laptop / Dell / 21092026 / qty=1).
+  2. POST `/api/sells` with 1 Laptop sold → inventory dropped to 0 rows (the single Laptop row hit qty 0 and was deleted).
+  3. DELETE that sell → inventory restored: a new row (Laptop / Dell / 21092026 / qty=1, remarks="Restored from Sell (edit/delete)").
+  4. POST `/api/purchases` with 2 Laptops (serial NEW-001) → inventory gained a new row (qty=2) — confirms the existing Purchase→Inventory flow.
+  5. DELETE that purchase → inventory row cascade-deleted (was linked via purchaseId). Back to baseline (1 Laptop / 21092026 / qty=1).
+
+Stage Summary:
+- Stock movements now flow automatically:
+  - **Purchase saved** → Inventory Stock gains rows (one per line item, with brand/model/serial/uom and the purchase invoice no). Existing behavior, verified working.
+  - **Sell saved** → Inventory Stock rows for each sold product are decremented FIFO (oldest first). Rows reaching qty 0 are deleted to keep the inventory list clean.
+  - **Sell edited** → old item quantities are first restored to inventory (audited via "Restored from Sell (edit/delete)" remarks), then new item quantities are decremented. Net effect: inventory reflects the diff.
+  - **Sell deleted** → all sold quantities are restored to inventory (with the "Restored from Sell (edit/delete)" marker), then the sell is removed.
+  - **Purchase deleted** → all linked inventory rows are cascade-deleted (existing onDelete: Cascade behavior).
+- The user's full requirement — "Purchase kora Product Inventory Stock e add hobe and product sell korar pore Inventory Stock theke minus hobe" — is now satisfied end-to-end. The implementation is atomic (transaction-wrapped) so the sell + inventory update can never get out of sync.
