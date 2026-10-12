@@ -1616,3 +1616,23 @@ Stage Summary:
   1. The Product dropdown's search box now matches BOTH product name AND serial number (e.g. typing "21092026" finds the Laptop Computer).
   2. The Brand column is no longer a dropdown — it's a read-only text display showing the inventory-record's brand. Brand is still auto-filled when a product is picked.
   3. The Condition field is always auto-filled when a product is selected: it uses the inventory record's condition if present, otherwise falls back to the first active condition in /api/conditions. No more empty Condition after product selection.
+
+---
+Task ID: PRODUCT-LAYOUT-LEFT-RIGHT-1
+Agent: main
+Task: Product List layout — (1) Add "Products" label on LEFT of search box, (2) Add "Add Product" button on RIGHT of the All Status dropdown
+
+Work Log:
+- Updated `src/components/modules/products.tsx`:
+  - Removed the `actions={<Button onClick={handleAdd}><Plus /> Add Product</Button>}` prop from `<PageHeader>` — the top-right button in the page header is gone.
+  - Passed `searchLeftAddon={<span className="text-3xl font-bold whitespace-nowrap">Products</span>}` — a large bold "Products" label on the LEFT of the search input (same pattern as Brands / Categories / UOMs / Purchases).
+  - Wrapped the existing `toolbar` Select (All Status) in a fragment and added an "Add Product" `<Button onClick={handleAdd}><Plus /> Add Product</Button>` AFTER it — so the toolbar now renders as: [All Status dropdown] [Add Product button], right-aligned via the DataTable's existing `sm:justify-between` layout. This satisfies the user's requirement that "Add Product" appears to the RIGHT of the All Status dropdown.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser + VLM:
+  - VLM confirmed:
+    - LEFT: large bold "Products" label before the search box.
+    - RIGHT: "All Status" dropdown followed by a green "Add Product" button.
+    - No separate "Add Product" button in the page header area above this row.
+
+Stage Summary:
+- The Product List page's top row now shows: large bold "Products" label + search box on the left; "All Status" dropdown + "Add Product" button on the right (in that order). The previously separate "Add Product" button in the page header has been removed. Same layout pattern as Brands / Categories / UOMs / Purchases pages for consistency.

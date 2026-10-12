@@ -177,11 +177,6 @@ export function ProductsModule() {
       <PageHeader
         title="Products"
         description="Manage your product catalog with categories, brands, and UOMs."
-        actions={
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4" /> Add Product
-          </Button>
-        }
       />
 
       <DataTable
@@ -193,17 +188,25 @@ export function ProductsModule() {
         searchText={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search products..."
+        searchLeftAddon={
+          <span className="text-3xl font-bold whitespace-nowrap">Products</span>
+        }
         toolbar={
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Active">Active</SelectItem>
-              <SelectItem value="Inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
+          <>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleAdd}>
+              <Plus className="h-4 w-4" /> Add Product
+            </Button>
+          </>
         }
         headerRowClassName="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700 hover:from-emerald-500 hover:via-emerald-600 hover:to-teal-700 [&>th]:text-white [&>th]:font-bold"
       />
