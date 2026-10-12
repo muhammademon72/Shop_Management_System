@@ -1690,3 +1690,43 @@ Work Log:
 
 Stage Summary:
 - The Sell print invoice no longer duplicates "Refurbished" (or any condition value) in the Product Specifications column. The condition now appears exactly once, in the dedicated Condition column on the right side of the line-items table. The Brand / Model / Serial badges under the product name are unchanged.
+
+---
+Task ID: REPORT-MANAGE-CREATE-1
+Agent: main
+Task: Create a new "Report Manage" sidebar group under "Sell Manage" with two new modules: Purchase Report and Delivery Report
+
+Work Log:
+- **Store** (`src/lib/store.ts`): added `purchaseReport` and `deliveryReport` to the `ModuleId` union type.
+- **Sidebar** (`src/components/sidebar.tsx`): imported `BarChart3` and `Truck as DeliveryIcon` from lucide-react. Added a new `NAV` group:
+  ```
+  { group: "Report Manage", items: [
+    { id: "purchaseReport", label: "Purchase Report", icon: BarChart3 },
+    { id: "deliveryReport", label: "Delivery Report", icon: DeliveryIcon },
+  ]}
+  ```
+  Placed between "Sell Manage" and "Settings Manage". Now collapsible via the existing toggle mechanism since it has >1 item.
+- **New module `src/components/modules/purchase-report.tsx`** (`PurchaseReportModule`):
+  - Fetches /api/purchases + /api/suppliers.
+  - Filter bar: From Date / To Date / Supplier dropdown / Search (invoice or supplier) / "Print Report" button (emerald).
+  - 5 KPI cards: Total Purchases, Total Value (BDT), Units Purchased, Suppliers, Avg Order.
+  - Main purchases table (Date/Invoice/Supplier/Items/Grand Total) with emerald gradient header.
+  - Two breakdown tables at the bottom: "Top Suppliers" (sorted by value desc) and "Top 10 Products by Quantity" (sorted by qty desc).
+  - Print report: opens a new window with a clean A4 print layout (KPIs + both breakdown tables), triggers print dialog.
+- **New module `src/components/modules/delivery-report.tsx`** (`DeliveryReportModule`):
+  - Fetches /api/sells + /api/customers.
+  - Flattens each SellItem into a "delivery row" (one row = one product delivered). Includes a derived `deliveryStatus` ("Paid & Delivered" if dueAmount=0, otherwise "Partial Payment").
+  - Filter bar: From Date / To Date / Status dropdown (All / Paid & Delivered / Partial Payment) / Search (invoice/customer/product/serial) / "Print Report" button.
+  - 5 KPI cards: Total Deliveries, Units Delivered, Total Value, Total Due, Customers.
+  - Main deliveries table (Date/Invoice/Customer/Product/Serial/Qty/Total/Status) with emerald gradient header.
+  - Two breakdown tables: "Top Customers by Delivery Value" (top 10, includes Due column) and "Top 10 Delivered Products by Quantity".
+  - Print report: A4-friendly layout with KPIs + both breakdown tables.
+- **App-shell** (`src/components/app-shell.tsx`): imported `PurchaseReportModule` and `DeliveryReportModule`; added `case "purchaseReport"` and `case "deliveryReport"` to the `ActiveModule` switch; added labels "Purchase Report" and "Delivery Report" to the `moduleLabel` map (so the top header shows the right module name).
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+- Visual verification via agent-browser + VLM:
+  - Sidebar: VLM confirmed a "REPORT MANAGE" group with "Purchase Report" and "Delivery Report" items between "SELL MANAGE" and "SETTINGS MANAGE".
+  - Purchase Report page: VLM confirmed header, filter bar (From/To/Supplier/Search/Print), 5 KPI cards, main purchases table, and two breakdown tables.
+  - Delivery Report page: VLM confirmed header, filter bar (From/To/Status/Search/Print), 5 KPI cards with live data (1 delivery, BDT 28,500, 1 customer), deliveries table with 8 columns including Status, and two breakdown tables.
+
+Stage Summary:
+- The sidebar now has a new "Report Manage" group between "Sell Manage" and "Settings Manage" containing two collapsible menu items: "Purchase Report" and "Delivery Report". Both modules render full reports with filter bars, 5 KPI cards each, a main data table, and two breakdown tables (Top Suppliers/Customers + Top Products). Each module has a "Print Report" button that opens an A4-friendly print layout. The "Report Manage" group is also collapsible like the other multi-item groups (Product Manage, Purchase Manage, Sell Manage, Settings Manage).

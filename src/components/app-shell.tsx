@@ -22,6 +22,8 @@ import { InventoryModule } from "@/components/modules/inventory"
 import { CustomersModule } from "@/components/modules/customers"
 import { QuotationsModule } from "@/components/modules/quotations"
 import { SellsModule } from "@/components/modules/sells"
+import { PurchaseReportModule } from "@/components/modules/purchase-report"
+import { DeliveryReportModule } from "@/components/modules/delivery-report"
 import { CompanyProfileModule } from "@/components/modules/company-profile"
 import { UsersModule } from "@/components/modules/users"
 import { BackupRestoreModule } from "@/components/modules/backup-restore"
@@ -55,6 +57,10 @@ function ActiveModule() {
       return <QuotationsModule />
     case "sells":
       return <SellsModule />
+    case "purchaseReport":
+      return <PurchaseReportModule />
+    case "deliveryReport":
+      return <DeliveryReportModule />
     case "company":
       return <CompanyProfileModule />
     case "users":
@@ -103,6 +109,8 @@ export function AppShell() {
       customers: "Customers",
       quotations: "Quotations",
       sells: "Sales",
+      purchaseReport: "Purchase Report",
+      deliveryReport: "Delivery Report",
       company: "Company Profile",
       users: "User Management",
       backup: "Backup & Restore",

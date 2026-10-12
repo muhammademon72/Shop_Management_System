@@ -14,6 +14,8 @@ export type ModuleId =
   | "quotations"
   | "sells"
   | "customers"
+  | "purchaseReport"
+  | "deliveryReport"
   | "company"
   | "users"
   | "backup"

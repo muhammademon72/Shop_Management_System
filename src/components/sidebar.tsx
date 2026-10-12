@@ -26,6 +26,8 @@ import {
   ShieldCheck,
   Clock,
   ChevronRight,
+  BarChart3,
+  Truck as DeliveryIcon,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -74,6 +76,13 @@ const NAV: NavGroup[] = [
       { id: "quotations", label: "Quotation List", icon: FileText },
       { id: "sells", label: "Sell List", icon: ReceiptText },
       { id: "customers", label: "Customer List", icon: Users },
+    ],
+  },
+  {
+    group: "Report Manage",
+    items: [
+      { id: "purchaseReport", label: "Purchase Report", icon: BarChart3 },
+      { id: "deliveryReport", label: "Delivery Report", icon: DeliveryIcon },
     ],
   },
   {
