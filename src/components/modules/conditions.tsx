@@ -130,11 +130,6 @@ export function ConditionsModule() {
       <PageHeader
         title="Conditions"
         description="List of product conditions (e.g. New, Used, Refurbished) used in purchases."
-        actions={
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4" /> Add Condition
-          </Button>
-        }
       />
 
       <DataTable
@@ -146,6 +141,14 @@ export function ConditionsModule() {
         searchText={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search conditions..."
+        searchLeftAddon={
+          <span className="text-3xl font-bold whitespace-nowrap">Conditions</span>
+        }
+        toolbar={
+          <Button onClick={handleAdd}>
+            <Plus className="h-4 w-4" /> Add Condition
+          </Button>
+        }
         headerRowClassName="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700 hover:from-emerald-500 hover:via-emerald-600 hover:to-teal-700 [&>th]:text-white [&>th]:font-bold"
       />
 

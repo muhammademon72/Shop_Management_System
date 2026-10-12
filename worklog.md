@@ -1636,3 +1636,21 @@ Work Log:
 
 Stage Summary:
 - The Product List page's top row now shows: large bold "Products" label + search box on the left; "All Status" dropdown + "Add Product" button on the right (in that order). The previously separate "Add Product" button in the page header has been removed. Same layout pattern as Brands / Categories / UOMs / Purchases pages for consistency.
+
+---
+Task ID: CONDITION-LAYOUT-LEFT-RIGHT-1
+Agent: main
+Task: Condition List layout — (1) "Conditions" label on LEFT of search box; (2) "Add Condition" button on RIGHT of search box
+
+Work Log:
+- Updated `src/components/modules/conditions.tsx`:
+  - Removed the `actions={<Button>Add Condition</Button>}` prop from `<PageHeader>` (top-right button gone from page header).
+  - Passed `searchLeftAddon={<span className="text-3xl font-bold whitespace-nowrap">Conditions</span>}` — large bold "Conditions" label on the LEFT of the search input.
+  - Passed `toolbar={<Button onClick={handleAdd}><Plus /> Add Condition</Button>}` — the Add Condition button on the RIGHT of the search input (via DataTable's existing `sm:justify-between` between left addon+search and toolbar).
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+
+Stage Summary:
+- The Condition List top row now shows (left-to-right on sm+ screens):
+  - LEFT: large bold "Conditions" label → search input ("Search conditions...")
+  - RIGHT: "Add Condition" button
+- Same pattern as Brands, Categories, UOMs, Purchases, Products pages — consistent layout across all list pages.
