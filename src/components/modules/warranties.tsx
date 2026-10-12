@@ -130,11 +130,6 @@ export function WarrantiesModule() {
       <PageHeader
         title="Warranties"
         description="List of warranty options (e.g. 7 Days, 30 Days, 1 Year) used in purchases."
-        actions={
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4" /> Add Warranty
-          </Button>
-        }
       />
 
       <DataTable
@@ -146,6 +141,14 @@ export function WarrantiesModule() {
         searchText={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search warranties..."
+        searchLeftAddon={
+          <span className="text-3xl font-bold whitespace-nowrap">Warranties</span>
+        }
+        toolbar={
+          <Button onClick={handleAdd}>
+            <Plus className="h-4 w-4" /> Add Warranty
+          </Button>
+        }
         headerRowClassName="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700 hover:from-emerald-500 hover:via-emerald-600 hover:to-teal-700 [&>th]:text-white [&>th]:font-bold"
       />
 

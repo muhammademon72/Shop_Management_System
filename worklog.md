@@ -1654,3 +1654,21 @@ Stage Summary:
   - LEFT: large bold "Conditions" label → search input ("Search conditions...")
   - RIGHT: "Add Condition" button
 - Same pattern as Brands, Categories, UOMs, Purchases, Products pages — consistent layout across all list pages.
+
+---
+Task ID: WARRANTY-LAYOUT-LEFT-RIGHT-1
+Agent: main
+Task: Warranty List layout — (1) "Warranties" label on LEFT of search box; (2) "Add Warranty" button on RIGHT of search box
+
+Work Log:
+- Updated `src/components/modules/warranties.tsx`:
+  - Removed the `actions={<Button>Add Warranty</Button>}` prop from `<PageHeader>`.
+  - Passed `searchLeftAddon={<span className="text-3xl font-bold whitespace-nowrap">Warranties</span>}` — large bold "Warranties" label on the LEFT of the search input.
+  - Passed `toolbar={<Button onClick={handleAdd}><Plus /> Add Warranty</Button>}` — Add Warranty button on the RIGHT of the search input.
+- Lint: clean (0 errors, 0 warnings). Dev server: HTTP 200.
+
+Stage Summary:
+- The Warranty List top row now shows (left-to-right on sm+ screens):
+  - LEFT: large bold "Warranties" label → search input ("Search warranties...")
+  - RIGHT: "Add Warranty" button
+- Same pattern as Brands, Categories, UOMs, Purchases, Products, Conditions pages.
