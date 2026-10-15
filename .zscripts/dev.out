@@ -1073,3 +1073,25 @@ prisma:query SELECT `main`.`Condition`.`id`, `main`.`Condition`.`name`, `main`.`
  GET /api/conditions 200 in 88ms (compile: 55ms, render: 33ms)
 prisma:query SELECT `main`.`CompanyProfile`.`id`, `main`.`CompanyProfile`.`name`, `main`.`CompanyProfile`.`address`, `main`.`CompanyProfile`.`phone`, `main`.`CompanyProfile`.`email`, `main`.`CompanyProfile`.`website`, `main`.`CompanyProfile`.`vatNo`, `main`.`CompanyProfile`.`logo`, `main`.`CompanyProfile`.`createdAt`, `main`.`CompanyProfile`.`updatedAt` FROM `main`.`CompanyProfile` WHERE 1=1 ORDER BY `main`.`CompanyProfile`.`createdAt` ASC LIMIT ? OFFSET ?
  GET /api/company 200 in 36ms (compile: 1234µs, render: 35ms)
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://21.0.17.4:3000
+- Environments: .env.local, .env
+
+✓ Starting...
+✓ Ready in 865ms
+○ Compiling / ...
+ GET / 200 in 3.6s (compile: 3.3s, render: 241ms)
+ GET /api/stats 500 in 152ms (compile: 139ms, render: 13ms)
+ GET /api/stats 500 in 9ms (compile: 3ms, render: 6ms)
+ GET / 200 in 61ms (compile: 3ms, render: 58ms)
+ GET /api/categories 200 in 41ms (compile: 37ms, render: 5ms)
+ GET /api/brands 200 in 40ms (compile: 34ms, render: 5ms)
+ GET /api/products 200 in 36ms (compile: 31ms, render: 5ms)
+ GET /api/company 200 in 33ms (compile: 29ms, render: 4ms)
+ GET /api/sells 200 in 137ms (compile: 132ms, render: 5ms)
+ GET /api/purchases 200 in 111ms (compile: 107ms, render: 4ms)
+ GET /api/inventory 200 in 103ms (compile: 98ms, render: 5ms)
+ GET /api/stats 500 in 5ms (compile: 1546µs, render: 3ms)
+ GET / 200 in 57ms (compile: 3ms, render: 54ms)
+ GET /api/stats 200 in 45ms (compile: 38ms, render: 7ms)
