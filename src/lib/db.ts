@@ -586,9 +586,60 @@ export const db = {
 
   // === AppUser ===
   appUser: {
-    async findMany() {
-      const rs = await client.execute('SELECT * FROM AppUser ORDER BY createdAt DESC')
+    async findMany(args?: { where?: Record<string, unknown>; take?: number }) {
+      let sql = 'SELECT id, name, email, mobile, role, status, createdAt, updatedAt FROM AppUser'
+      const params: unknown[] = []
+      const where = args?.where
+      if (where) {
+        const clauses: string[] = []
+        for (const [k, v] of Object.entries(where)) {
+          if (v === undefined || v === null) continue
+          clauses.push(`${k} = ?`)
+          params.push(v)
+        }
+        if (clauses.length) sql += ' WHERE ' + clauses.join(' AND ')
+      }
+      sql += ' ORDER BY createdAt DESC'
+      if (args?.take) { sql += ' LIMIT ?'; params.push(args.take) }
+      const rs = await client.execute({ sql, args: params })
       return rows(rs)
+    },
+    async findFirst(args: { where: Record<string, unknown> }) {
+      let sql = 'SELECT * FROM AppUser'
+      const params: unknown[] = []
+      const clauses: string[] = []
+      for (const [k, v] of Object.entries(args.where)) {
+        if (v === undefined || v === null) continue
+        clauses.push(`${k} = ?`)
+        params.push(v)
+      }
+      if (clauses.length) sql += ' WHERE ' + clauses.join(' AND ')
+      sql += ' LIMIT 1'
+      const rs = await client.execute({ sql, args: params })
+      return rs.rows.length ? row(rs.rows[0]) : null
+    },
+    async create(args: { data: Record<string, unknown> }) {
+      const cols = Object.keys(args.data)
+      const vals = Object.values(args.data)
+      const placeholders = cols.map(() => '?').join(', ')
+      const sql = `INSERT INTO AppUser (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
+      const rs = await client.execute({ sql, args: vals })
+      return row(rs.rows[0])
+    },
+    async update(args: { where: { id: string }; data: Record<string, unknown> }) {
+      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
+      const vals = [...Object.values(args.data), args.where.id]
+      const sql = `UPDATE AppUser SET ${sets.join(', ')} WHERE id = ? RETURNING *`
+      const rs = await client.execute({ sql, args: vals })
+      return row(rs.rows[0])
+    },
+    async delete(args: { where: { id: string } }) {
+      await client.execute({ sql: 'DELETE FROM AppUser WHERE id = ?', args: [args.where.id] })
+      return { success: true }
+    },
+    async count() {
+      const rs = await client.execute('SELECT COUNT(*) as count FROM AppUser')
+      return Number(rs.rows[0]?.count ?? 0)
     },
   },
 

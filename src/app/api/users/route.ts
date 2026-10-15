@@ -1,21 +1,11 @@
+export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 
 export async function GET() {
   try {
-    const items = await db.appUser.findMany({
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        mobile: true,
-        role: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
+    // findMany already excludes password column (SELECT without password)
+    const items = await db.appUser.findMany()
     return NextResponse.json(items)
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
@@ -34,18 +24,10 @@ export async function POST(req: Request) {
         status: String(body.status ?? "Active"),
         password: String(body.password ?? "password"),
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        mobile: true,
-        role: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
     })
-    return NextResponse.json(created, { status: 201 })
+    // Don't return password
+    const { password, ...safe } = created
+    return NextResponse.json(safe, { status: 201 })
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }
@@ -60,28 +42,15 @@ export async function PUT(req: Request) {
     const data: Record<string, unknown> = {}
     if (rest.name !== undefined) data.name = String(rest.name).trim()
     if (rest.email !== undefined) data.email = String(rest.email).trim()
-    if (rest.mobile !== undefined)
-      data.mobile = rest.mobile ? String(rest.mobile) : null
+    if (rest.mobile !== undefined) data.mobile = rest.mobile ? String(rest.mobile) : null
     if (rest.role !== undefined) data.role = String(rest.role)
     if (rest.status !== undefined) data.status = String(rest.status)
     if (rest.password !== undefined && String(rest.password) !== "")
       data.password = String(rest.password)
 
-    const updated = await db.appUser.update({
-      where: { id: String(id) },
-      data,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        mobile: true,
-        role: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
-    return NextResponse.json(updated)
+    const updated = await db.appUser.update({ where: { id: String(id) }, data })
+    const { password, ...safe } = updated
+    return NextResponse.json(safe)
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }

@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Menu, Moon, Sun, Bell } from "lucide-react"
+import { Menu, Moon, Sun, Bell, LogOut } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { useAppStore } from "@/lib/store"
+import { useAuthStore } from "@/lib/auth-store"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { SidebarContent } from "@/components/sidebar"
@@ -31,44 +32,25 @@ import { BackupRestoreModule } from "@/components/modules/backup-restore"
 function ActiveModule() {
   const activeModule = useAppStore((s) => s.activeModule)
   switch (activeModule) {
-    case "dashboard":
-      return <Dashboard />
-    case "categories":
-      return <CategoriesModule />
-    case "brands":
-      return <BrandsModule />
-    case "uoms":
-      return <UomsModule />
-    case "products":
-      return <ProductsModule />
-    case "conditions":
-      return <ConditionsModule />
-    case "warranties":
-      return <WarrantiesModule />
-    case "suppliers":
-      return <SuppliersModule />
-    case "purchases":
-      return <PurchasesModule />
-    case "inventory":
-      return <InventoryModule />
-    case "customers":
-      return <CustomersModule />
-    case "quotations":
-      return <QuotationsModule />
-    case "sells":
-      return <SellsModule />
-    case "purchaseReport":
-      return <PurchaseReportModule />
-    case "deliveryReport":
-      return <DeliveryReportModule />
-    case "company":
-      return <CompanyProfileModule />
-    case "users":
-      return <UsersModule />
-    case "backup":
-      return <BackupRestoreModule />
-    default:
-      return <Dashboard />
+    case "dashboard": return <Dashboard />
+    case "categories": return <CategoriesModule />
+    case "brands": return <BrandsModule />
+    case "uoms": return <UomsModule />
+    case "products": return <ProductsModule />
+    case "conditions": return <ConditionsModule />
+    case "warranties": return <WarrantiesModule />
+    case "suppliers": return <SuppliersModule />
+    case "purchases": return <PurchasesModule />
+    case "inventory": return <InventoryModule />
+    case "customers": return <CustomersModule />
+    case "quotations": return <QuotationsModule />
+    case "sells": return <SellsModule />
+    case "purchaseReport": return <PurchaseReportModule />
+    case "deliveryReport": return <DeliveryReportModule />
+    case "company": return <CompanyProfileModule />
+    case "users": return <UsersModule />
+    case "backup": return <BackupRestoreModule />
+    default: return <Dashboard />
   }
 }
 
@@ -78,12 +60,7 @@ function ThemeToggle() {
   React.useEffect(() => setMounted(true), [])
   if (!mounted) return <div className="h-9 w-9" />
   return (
-    <Button
-      variant="outline"
-      size="icon"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      title="Toggle theme"
-    >
+    <Button variant="outline" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Toggle theme">
       {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>
   )
@@ -93,58 +70,40 @@ export function AppShell() {
   const mobileSidebarOpen = useAppStore((s) => s.mobileSidebarOpen)
   const setMobileSidebarOpen = useAppStore((s) => s.setMobileSidebarOpen)
   const activeModule = useAppStore((s) => s.activeModule)
+  const user = useAuthStore((s) => s.user)
+  const logout = useAuthStore((s) => s.logout)
 
   const moduleLabel = React.useMemo(() => {
     const map: Record<string, string> = {
-      dashboard: "Dashboard",
-      categories: "Categories",
-      brands: "Brands",
-      uoms: "UOMs",
-      products: "Products",
-      conditions: "Conditions",
-      warranties: "Warranties",
-      suppliers: "Suppliers",
-      purchases: "Purchases",
-      inventory: "Inventory Stock",
-      customers: "Customers",
-      quotations: "Quotations",
-      sells: "Sales",
-      purchaseReport: "Purchase Report",
-      deliveryReport: "Delivery Report",
-      company: "Company Profile",
-      users: "User Management",
-      backup: "Backup & Restore",
+      dashboard: "Dashboard", categories: "Categories", brands: "Brands",
+      uoms: "UOMs", products: "Products", conditions: "Conditions",
+      warranties: "Warranties", suppliers: "Suppliers", purchases: "Purchases",
+      inventory: "Inventory Stock", customers: "Customers", quotations: "Quotations",
+      sells: "Sales", purchaseReport: "Purchase Report", deliveryReport: "Delivery Report",
+      company: "Company Profile", users: "User Management", backup: "Backup & Restore",
     }
     return map[activeModule] || "Dashboard"
   }, [activeModule])
 
+  const handleLogout = () => {
+    logout()
+  }
+
   return (
     <div className="flex min-h-screen w-full bg-muted/30">
-      {/* Desktop sidebar — dark charcoal theme via sidebar CSS variables */}
       <aside className="hidden w-64 shrink-0 bg-sidebar text-sidebar-foreground lg:flex lg:flex-col">
         <SidebarContent />
       </aside>
 
-      {/* Mobile sidebar */}
-      <Sheet
-        open={mobileSidebarOpen}
-        onOpenChange={setMobileSidebarOpen}
-      >
+      <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
         <SheetContent side="left" className="w-72 bg-sidebar text-sidebar-foreground p-0">
           <SidebarContent onNavigate={() => setMobileSidebarOpen(false)} />
         </SheetContent>
       </Sheet>
 
-      {/* Main content */}
       <div className="flex min-h-screen flex-1 flex-col">
         <header className="bg-background sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileSidebarOpen(true)}
-            aria-label="Open menu"
-          >
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileSidebarOpen(true)} aria-label="Open menu">
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex flex-1 items-center gap-2">
@@ -155,9 +114,14 @@ export function AppShell() {
               <Bell className="h-4 w-4" />
             </Button>
             <ThemeToggle />
-            <div className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold">
-              AD
-            </div>
+            {user && (
+              <div className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold" title={user.name}>
+                {user.name.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <Button variant="outline" size="icon" onClick={handleLogout} title="Logout" className="text-rose-600 hover:text-rose-700">
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </header>
 
