@@ -1131,3 +1131,13 @@ Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allow
 ○ Compiling / ...
  GET / 200 in 3.0s (compile: 2.7s, render: 305ms)
  GET / 200 in 3.6s (compile: 3.4s, render: 271ms)
+ GET /api/stats 200 in 131ms (compile: 115ms, render: 16ms)
+⚠ Cross origin request detected from preview-chat-e5b1919f-6d53-4466-8dfa-19dad9fe5457.space-z.ai to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /api/company 200 in 57ms (compile: 50ms, render: 7ms)
+ GET /api/stats 200 in 12ms (compile: 4ms, render: 7ms)
+✓ Compiled in 184ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET / 200 in 450ms (compile: 68ms, render: 381ms)
+ GET /api/stats 200 in 17ms (compile: 4ms, render: 13ms)
+ GET / 200 in 52ms (compile: 3ms, render: 49ms)
