@@ -1101,3 +1101,16 @@ prisma:query SELECT `main`.`CompanyProfile`.`id`, `main`.`CompanyProfile`.`name`
 Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
  GET / 200 in 61ms (compile: 3ms, render: 58ms)
  GET /api/stats 200 in 6ms (compile: 2ms, render: 4ms)
+ GET / 200 in 55ms (compile: 2ms, render: 53ms)
+ GET / 200 in 53ms (compile: 2ms, render: 51ms)
+ GET / 200 in 59ms (compile: 4ms, render: 55ms)
+ GET /api/stats 200 in 7ms (compile: 1943µs, render: 5ms)
+  Reload env: .env
+ GET / 200 in 297ms (compile: 42ms, render: 255ms)
+ GET /api/stats 200 in 42ms (compile: 32ms, render: 11ms)
+ GET /api/categories 200 in 63ms (compile: 52ms, render: 11ms)
+ GET / 200 in 243ms (compile: 5ms, render: 238ms)
+ GET /api/stats 200 in 168ms (compile: 112ms, render: 55ms)
+ GET / 200 in 60ms (compile: 2ms, render: 58ms)
+ GET /api/stats 200 in 6ms (compile: 2ms, render: 4ms)
+ GET /api/categories 200 in 8ms (compile: 2ms, render: 5ms)
