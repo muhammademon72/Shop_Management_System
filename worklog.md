@@ -1763,3 +1763,18 @@ Stage Summary:
   - **Sell deleted** → all sold quantities are restored to inventory (with the "Restored from Sell (edit/delete)" marker), then the sell is removed.
   - **Purchase deleted** → all linked inventory rows are cascade-deleted (existing onDelete: Cascade behavior).
 - The user's full requirement — "Purchase kora Product Inventory Stock e add hobe and product sell korar pore Inventory Stock theke minus hobe" — is now satisfied end-to-end. The implementation is atomic (transaction-wrapped) so the sell + inventory update can never get out of sync.
+
+---
+Task ID: VERCEL-LIBSQL-FIX-1
+Agent: main
+Task: Fix Vercel deployment by bypassing Prisma and using @libsql/client directly
+
+Work Log:
+- **Root cause identified**: Prisma's Rust query engine cannot read environment variables on Vercel's serverless functions. Even with the @prisma/adapter-libsql adapter, the engine internally tries to resolve env("DATABASE_URL") from the schema and gets "undefined" — causing "URL_INVALID: The URL 'undefined'" errors at runtime.
+- **Solution**: Rewrote `src/lib/db.ts` to use `@libsql/client` directly (pure JavaScript, no Rust engine). Created a Prisma-like API wrapper (db.category.findMany(), db.brand.create(), etc.) that executes raw SQL via @libsql/client. This completely bypasses the Rust engine.
+- **Local testing**: All APIs work correctly with the new db.ts — Categories (23), Brands (27), Products (17), Company, Sells (1), Purchases (0), Inventory (1), Stats (products=17, suppliers=5, customers=7).
+- **Vercel deployment**: Build succeeded ("Compiled successfully in 16.7s", "Build Completed"). No more "URL_INVALID" errors during build.
+- **Remaining issue**: The Turso database at `libsql://shopmanagementsystem-muhammademon72.aws-ap-south-1.turso.io` is returning HTTP 502 "no route configured for host" — the database instance appears to be down or the URL is incorrect. The user needs to verify the database URL in the Turso dashboard (https://turso.tech/app).
+
+Stage Summary:
+- The Prisma→@libsql/client bypass is complete and working locally. The Vercel build succeeds without any Prisma engine errors. However, the Turso database itself appears to be unreachable (502 Bad Gateway / "no route configured for host"). The user needs to check their Turso dashboard to verify the database URL is correct and the database is running.
