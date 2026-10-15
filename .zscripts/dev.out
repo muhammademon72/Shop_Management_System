@@ -1191,3 +1191,10 @@ Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allow
  GET / 200 in 106ms (compile: 85ms, render: 22ms)
 ✓ Compiled in 45ms
  GET /api/stats 200 in 90ms (compile: 79ms, render: 11ms)
+ GET / 200 in 149ms (compile: 3ms, render: 147ms)
+ POST /api/users 500 in 265ms (compile: 256ms, render: 10ms)
+ POST /api/auth/login 401 in 162ms (compile: 158ms, render: 5ms)
+ POST /api/users 500 in 51ms (compile: 42ms, render: 9ms)
+ POST /api/auth/login 401 in 28ms (compile: 21ms, render: 7ms)
+ POST /api/users 201 in 50ms (compile: 44ms, render: 6ms)
+ POST /api/auth/login 200 in 76ms (compile: 70ms, render: 6ms)

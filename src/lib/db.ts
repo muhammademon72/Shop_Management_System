@@ -56,6 +56,16 @@ function rows<T = Record<string, unknown>[]>(rs: { rows: Record<string, unknown>
 // Each "model" is a table name. We provide findMany, findUnique, create,
 // update, delete, count, and aggregate methods.
 
+// === Helper: generate a cuid-like ID ===
+function genId(): string {
+  return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
+}
+
+// === Helper: current timestamp (epoch ms) ===
+function now(): number {
+  return Date.now()
+}
+
 export const db = {
   // === Category ===
   category: {
@@ -78,16 +88,18 @@ export const db = {
       return rows(rs)
     },
     async create(args: { data: Record<string, unknown> }) {
-      const cols = Object.keys(args.data)
-      const vals = Object.values(args.data)
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
       const placeholders = cols.map(() => '?').join(', ')
       const sql = `INSERT INTO Category (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
     },
     async update(args: { where: { id: string }; data: Record<string, unknown> }) {
-      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
-      const vals = [...Object.values(args.data), args.where.id]
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
       const sql = `UPDATE Category SET ${sets.join(', ')} WHERE id = ? RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
@@ -122,16 +134,18 @@ export const db = {
       return rows(rs)
     },
     async create(args: { data: Record<string, unknown> }) {
-      const cols = Object.keys(args.data)
-      const vals = Object.values(args.data)
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
       const placeholders = cols.map(() => '?').join(', ')
       const sql = `INSERT INTO Brand (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
     },
     async update(args: { where: { id: string }; data: Record<string, unknown> }) {
-      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
-      const vals = [...Object.values(args.data), args.where.id]
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
       const sql = `UPDATE Brand SET ${sets.join(', ')} WHERE id = ? RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
@@ -153,16 +167,18 @@ export const db = {
       return rows(rs)
     },
     async create(args: { data: Record<string, unknown> }) {
-      const cols = Object.keys(args.data)
-      const vals = Object.values(args.data)
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
       const placeholders = cols.map(() => '?').join(', ')
       const sql = `INSERT INTO Uom (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
     },
     async update(args: { where: { id: string }; data: Record<string, unknown> }) {
-      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
-      const vals = [...Object.values(args.data), args.where.id]
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
       const sql = `UPDATE Uom SET ${sets.join(', ')} WHERE id = ? RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
@@ -180,16 +196,18 @@ export const db = {
       return rows(rs)
     },
     async create(args: { data: Record<string, unknown> }) {
-      const cols = Object.keys(args.data)
-      const vals = Object.values(args.data)
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
       const placeholders = cols.map(() => '?').join(', ')
       const sql = `INSERT INTO Condition (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
     },
     async update(args: { where: { id: string }; data: Record<string, unknown> }) {
-      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
-      const vals = [...Object.values(args.data), args.where.id]
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
       const sql = `UPDATE Condition SET ${sets.join(', ')} WHERE id = ? RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
@@ -207,16 +225,18 @@ export const db = {
       return rows(rs)
     },
     async create(args: { data: Record<string, unknown> }) {
-      const cols = Object.keys(args.data)
-      const vals = Object.values(args.data)
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
       const placeholders = cols.map(() => '?').join(', ')
       const sql = `INSERT INTO Warranty (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
     },
     async update(args: { where: { id: string }; data: Record<string, unknown> }) {
-      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
-      const vals = [...Object.values(args.data), args.where.id]
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
       const sql = `UPDATE Warranty SET ${sets.join(', ')} WHERE id = ? RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
@@ -260,16 +280,18 @@ export const db = {
       })
     },
     async create(args: { data: Record<string, unknown> }) {
-      const cols = Object.keys(args.data)
-      const vals = Object.values(args.data)
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
       const placeholders = cols.map(() => '?').join(', ')
       const sql = `INSERT INTO Product (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
     },
     async update(args: { where: { id: string }; data: Record<string, unknown> }) {
-      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
-      const vals = [...Object.values(args.data), args.where.id]
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
       const sql = `UPDATE Product SET ${sets.join(', ')} WHERE id = ? RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
@@ -291,16 +313,18 @@ export const db = {
       return rows(rs)
     },
     async create(args: { data: Record<string, unknown> }) {
-      const cols = Object.keys(args.data)
-      const vals = Object.values(args.data)
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
       const placeholders = cols.map(() => '?').join(', ')
       const sql = `INSERT INTO Supplier (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
     },
     async update(args: { where: { id: string }; data: Record<string, unknown> }) {
-      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
-      const vals = [...Object.values(args.data), args.where.id]
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
       const sql = `UPDATE Supplier SET ${sets.join(', ')} WHERE id = ? RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
@@ -322,16 +346,18 @@ export const db = {
       return rows(rs)
     },
     async create(args: { data: Record<string, unknown> }) {
-      const cols = Object.keys(args.data)
-      const vals = Object.values(args.data)
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
       const placeholders = cols.map(() => '?').join(', ')
       const sql = `INSERT INTO Customer (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
     },
     async update(args: { where: { id: string }; data: Record<string, unknown> }) {
-      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
-      const vals = [...Object.values(args.data), args.where.id]
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
       const sql = `UPDATE Customer SET ${sets.join(', ')} WHERE id = ? RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
@@ -353,16 +379,18 @@ export const db = {
       return rows(rs)
     },
     async create(args: { data: Record<string, unknown> }) {
-      const cols = Object.keys(args.data)
-      const vals = Object.values(args.data)
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
       const placeholders = cols.map(() => '?').join(', ')
       const sql = `INSERT INTO CompanyProfile (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
     },
     async update(args: { where: { id: string }; data: Record<string, unknown> }) {
-      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
-      const vals = [...Object.values(args.data), args.where.id]
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
       const sql = `UPDATE CompanyProfile SET ${sets.join(', ')} WHERE id = ? RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
@@ -584,7 +612,7 @@ export const db = {
     },
   },
 
-  // === AppUser ===
+// === AppUser ===
   appUser: {
     async findMany(args?: { where?: Record<string, unknown>; take?: number }) {
       let sql = 'SELECT id, name, email, mobile, role, status, createdAt, updatedAt FROM AppUser'
@@ -619,16 +647,18 @@ export const db = {
       return rs.rows.length ? row(rs.rows[0]) : null
     },
     async create(args: { data: Record<string, unknown> }) {
-      const cols = Object.keys(args.data)
-      const vals = Object.values(args.data)
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
       const placeholders = cols.map(() => '?').join(', ')
       const sql = `INSERT INTO AppUser (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
     },
     async update(args: { where: { id: string }; data: Record<string, unknown> }) {
-      const sets = Object.keys(args.data).map((k) => `${k} = ?`)
-      const vals = [...Object.values(args.data), args.where.id]
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
       const sql = `UPDATE AppUser SET ${sets.join(', ')} WHERE id = ? RETURNING *`
       const rs = await client.execute({ sql, args: vals })
       return row(rs.rows[0])
