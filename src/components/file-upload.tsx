@@ -18,13 +18,55 @@ const DEFAULT_ACCEPT =
   ".jpg,.jpeg,.png,.gif,.webp,.bmp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt," +
   "image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain"
 
+// MIME type → human label + extension mapping (for data URLs we use this)
+const MIME_LABELS: Record<string, { ext: string; kind: "pdf" | "doc" | "sheet" | "image" | "file" }> = {
+  "application/pdf": { ext: "pdf", kind: "pdf" },
+  "application/msword": { ext: "doc", kind: "doc" },
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { ext: "docx", kind: "doc" },
+  "application/vnd.ms-excel": { ext: "xls", kind: "sheet" },
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": { ext: "xlsx", kind: "sheet" },
+  "text/csv": { ext: "csv", kind: "sheet" },
+  "text/plain": { ext: "txt", kind: "file" },
+  "image/jpeg": { ext: "jpg", kind: "image" },
+  "image/png": { ext: "png", kind: "image" },
+  "image/gif": { ext: "gif", kind: "image" },
+  "image/webp": { ext: "webp", kind: "image" },
+  "image/bmp": { ext: "bmp", kind: "image" },
+}
+
+function parseDataUrl(url: string): { mime: string; kind: string } | null {
+  const m = url.match(/^data:([^;,]+)(;base64)?,/)
+  if (!m) return null
+  return { mime: m[1], kind: MIME_LABELS[m[1]]?.kind ?? "file" }
+}
+
 function isImage(url: string | null): boolean {
   if (!url) return false
+  if (url.startsWith("data:")) {
+    return parseDataUrl(url)?.kind === "image"
+  }
   return /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url)
+}
+
+function getFileKind(url: string | null): "pdf" | "doc" | "sheet" | "image" | "file" {
+  if (!url) return "file"
+  if (url.startsWith("data:")) {
+    return (parseDataUrl(url)?.kind as "pdf" | "doc" | "sheet" | "image" | "file") ?? "file"
+  }
+  const ext = getFileExt(url)
+  if (ext === "pdf") return "pdf"
+  if (ext.match(/^(doc|docx)$/)) return "doc"
+  if (ext.match(/^(xls|xlsx|csv)$/)) return "sheet"
+  if (ext.match(/^(jpg|jpeg|png|gif|webp|bmp)$/)) return "image"
+  return "file"
 }
 
 function getFileExt(url: string | null): string {
   if (!url) return ""
+  if (url.startsWith("data:")) {
+    const mime = parseDataUrl(url)?.mime
+    return mime ? (MIME_LABELS[mime]?.ext ?? "") : ""
+  }
   const m = url.match(/\.([a-z0-9]+)$/i)
   return m ? m[1].toLowerCase() : ""
 }
@@ -103,7 +145,27 @@ export function FileUpload({
     if (inputRef.current) inputRef.current.value = ""
   }
 
-  const showFilename = lastUpload?.name || (value ? value.split("/").pop() : null)
+  // For data URLs we don't have a real filename — fall back to a friendly
+  // label like "PDF Document" or just the extension. For regular URLs we
+  // take the last path segment.
+  function getDisplayLabel(url: string | null): string | null {
+    if (!url) return null
+    if (lastUpload?.name) return lastUpload.name
+    if (url.startsWith("data:")) {
+      const mime = parseDataUrl(url)?.mime
+      if (!mime) return "Attachment"
+      const ext = MIME_LABELS[mime]?.ext ?? ""
+      if (ext === "pdf") return "PDF Document"
+      if (ext === "doc" || ext === "docx") return "Word Document"
+      if (ext === "xls" || ext === "xlsx" || ext === "csv") return "Spreadsheet"
+      if (ext === "txt") return "Text File"
+      if (ext) return `${ext.toUpperCase()} File`
+      return "Attachment"
+    }
+    return url.split("/").pop()
+  }
+
+  const showFilename = getDisplayLabel(value)
 
   return (
     <div className="flex flex-col gap-2">
@@ -149,15 +211,14 @@ export function FileUpload({
               className="flex items-center gap-2 text-sm hover:underline"
               title={`View ${showFilename}`}
             >
-              {getFileExt(value) === "pdf" ? (
-                <FileText className="h-8 w-8 text-rose-600" />
-              ) : getFileExt(value).match(/^(doc|docx)$/) ? (
-                <FileText className="h-8 w-8 text-blue-600" />
-              ) : getFileExt(value).match(/^(xls|xlsx|csv)$/) ? (
-                <FileText className="h-8 w-8 text-emerald-600" />
-              ) : (
-                <ImageIcon className="h-8 w-8 text-muted-foreground" />
-              )}
+              {(() => {
+                const kind = getFileKind(value)
+                if (kind === "pdf") return <FileText className="h-8 w-8 text-rose-600" />
+                if (kind === "doc") return <FileText className="h-8 w-8 text-blue-600" />
+                if (kind === "sheet") return <FileText className="h-8 w-8 text-emerald-600" />
+                if (kind === "image") return <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                return <FileText className="h-8 w-8 text-muted-foreground" />
+              })()}
               <span className="flex flex-col">
                 <span className="font-medium">{showFilename}</span>
                 {lastUpload && <span className="text-xs text-muted-foreground">{formatSize(lastUpload.size)}</span>}
