@@ -31,6 +31,7 @@ import { SearchableSelect } from "@/components/searchable-select"
 import { FileUpload } from "@/components/file-upload"
 import type { Purchase, PurchaseItem, Supplier, Product, Brand, Condition, Warranty } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
+import { openAttachment } from "@/lib/open-attachment"
 
 interface ItemRow {
   id?: string
@@ -426,15 +427,14 @@ export function PurchasesModule() {
                   </td>
                   <td className="border border-dashed border-gray-300 px-3 py-2 text-center">
                     {row.attachment ? (
-                      <a
-                        href={row.attachment}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => openAttachment(row.attachment)}
                         title="View attachment"
                         className="inline-flex items-center justify-center text-emerald-600 hover:text-emerald-700"
                       >
                         <FileCheck2 className="h-5 w-5" />
-                      </a>
+                      </button>
                     ) : (
                       <button
                         type="button"
@@ -932,15 +932,14 @@ export function PurchasesModule() {
                     </td>
                     <td className="border border-gray-300 px-2 py-1.5 align-top">
                       {viewing.attachment ? (
-                        <a
-                          href={viewing.attachment}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => openAttachment(viewing.attachment)}
                           className="text-[#0066cc] hover:underline"
                           title="View attachment"
                         >
                           📎 View Attachment
-                        </a>
+                        </button>
                       ) : (
                         "—"
                       )}

@@ -6,6 +6,7 @@ import { Upload, X, FileText, Image as ImageIcon, Loader2, Download } from "luci
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { openAttachment } from "@/lib/open-attachment"
 
 interface FileUploadProps {
   value: string | null
@@ -162,7 +163,7 @@ export function FileUpload({
       if (ext) return `${ext.toUpperCase()} File`
       return "Attachment"
     }
-    return url.split("/").pop()
+    return url.split("/").pop() ?? null
   }
 
   const showFilename = getDisplayLabel(value)
@@ -200,14 +201,18 @@ export function FileUpload({
       {value && !uploading && (
         <div className="flex items-center gap-3 rounded-md border bg-muted/30 px-3 py-2">
           {isImage(value) ? (
-            <a href={value} target="_blank" rel="noopener noreferrer" className="block">
+            <button
+              type="button"
+              onClick={() => openAttachment(value)}
+              className="block"
+              title={`View ${showFilename}`}
+            >
               <img src={value} alt={showFilename ?? "attachment"} className="h-12 w-12 rounded-md border object-cover" />
-            </a>
+            </button>
           ) : (
-            <a
-              href={value}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => openAttachment(value)}
               className="flex items-center gap-2 text-sm hover:underline"
               title={`View ${showFilename}`}
             >
@@ -223,7 +228,7 @@ export function FileUpload({
                 <span className="font-medium">{showFilename}</span>
                 {lastUpload && <span className="text-xs text-muted-foreground">{formatSize(lastUpload.size)}</span>}
               </span>
-            </a>
+            </button>
           )}
           <Button
             type="button"
