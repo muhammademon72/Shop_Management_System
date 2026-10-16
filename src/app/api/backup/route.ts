@@ -53,10 +53,31 @@ export async function POST(req: Request) {
     const body = await req.json()
     const ts = now()
 
-    // Helper to convert values
-    const toStr = (v: unknown): string | null => v === null || v === undefined || v === "" ? null : String(v)
-    const toNum = (v: unknown): number => typeof v === "number" ? v : Number(v ?? 0) || 0
-    const toInt = (v: unknown): number | null => v === null || v === undefined || v === "" ? null : Math.round(Number(v))
+    // Helper to convert values — handles numbers, strings, objects, nulls
+    const toStr = (v: unknown): string | null => {
+      if (v === null || v === undefined || v === "") return null
+      if (typeof v === "object") return JSON.stringify(v)
+      return String(v)
+    }
+    const toNum = (v: unknown): number => {
+      if (typeof v === "number") return v
+      if (typeof v === "string") return Number(v) || 0
+      if (v === null || v === undefined) return 0
+      return 0
+    }
+    const toInt = (v: unknown): number | null => {
+      if (v === null || v === undefined || v === "") return null
+      if (typeof v === "number") return Math.round(v)
+      const n = Number(v)
+      return isNaN(n) ? null : Math.round(n)
+    }
+    // Convert date to epoch ms (handles ISO strings, numbers, Date objects)
+    const toTs = (v: unknown): number => {
+      if (!v) return ts
+      if (typeof v === "number") return v
+      const d = new Date(String(v))
+      return isNaN(d.getTime()) ? ts : d.getTime()
+    }
 
     // Step 1: Delete all existing data (except AppUser)
     const tables = [
@@ -155,7 +176,7 @@ export async function POST(req: Request) {
         sql: 'INSERT INTO Purchase (id, purchaseDate, supplierId, invoiceNo, totalPrice, discount, grandTotal, attachment, remarks, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [
           id,
-          p.purchaseDate ? new Date(String(p.purchaseDate)).getTime() : ts,
+          toTs(p.purchaseDate),
           p.supplierId && idMap.supplier[p.supplierId] ? idMap.supplier[p.supplierId] : null,
           String(p.invoiceNo ?? ""),
           toNum(p.totalPrice), toNum(p.discount), toNum(p.grandTotal),
@@ -185,7 +206,7 @@ export async function POST(req: Request) {
         sql: 'INSERT INTO InventoryStock (id, date, invoice, productId, brand, model, serial, condition, warrantyText, qty, uom, remarks, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [
           id,
-          i.date ? new Date(String(i.date)).getTime() : ts,
+          toTs(i.date),
           String(i.invoice ?? ""),
           i.productId && idMap.product[i.productId] ? idMap.product[i.productId] : null,
           toStr(i.brand), toStr(i.model), toStr(i.serial),
@@ -202,7 +223,7 @@ export async function POST(req: Request) {
         sql: 'INSERT INTO Quotation (id, quotationDate, customerId, invoiceNo, totalPrice, discount, grandTotal, remarks, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [
           id,
-          q.quotationDate ? new Date(String(q.quotationDate)).getTime() : ts,
+          toTs(q.quotationDate),
           q.customerId && idMap.customer[q.customerId] ? idMap.customer[q.customerId] : null,
           String(q.invoiceNo ?? ""),
           toNum(q.totalPrice), toNum(q.discount), toNum(q.grandTotal),
@@ -231,7 +252,7 @@ export async function POST(req: Request) {
         sql: 'INSERT INTO Sell (id, sellDate, customerId, invoiceNo, totalPrice, discount, grandTotal, paidAmount, dueAmount, remarks, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         args: [
           id,
-          s.sellDate ? new Date(String(s.sellDate)).getTime() : ts,
+          toTs(s.sellDate),
           s.customerId && idMap.customer[s.customerId] ? idMap.customer[s.customerId] : null,
           String(s.invoiceNo ?? ""),
           toNum(s.totalPrice), toNum(s.discount), toNum(s.grandTotal),
