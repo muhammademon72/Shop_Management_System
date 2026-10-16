@@ -1301,3 +1301,7 @@ Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allow
  GET /api/backup 200 in 8ms (compile: 3ms, render: 5ms)
  POST /api/backup 200 in 8ms (compile: 1413µs, render: 7ms)
  POST /api/backup 500 in 37ms (compile: 30ms, render: 7ms)
+ POST /api/backup 500 in 12ms (compile: 3ms, render: 9ms)
+ POST /api/backup 500 in 9ms (compile: 1956µs, render: 7ms)
+ POST /api/backup 200 in 46ms (compile: 40ms, render: 6ms)
+ GET /api/categories 200 in 45ms (compile: 34ms, render: 11ms)

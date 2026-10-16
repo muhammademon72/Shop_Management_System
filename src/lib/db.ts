@@ -695,7 +695,10 @@ export const db = {
   },
 
   // === Raw SQL execution (for complex queries) ===
-  async execute(sql: string, args: unknown[] = []) {
+  async execute(sql: string | { sql: string; args?: unknown[] }, args: unknown[] = []) {
+    if (typeof sql === "object") {
+      return client.execute({ sql: sql.sql, args: sql.args ?? [] })
+    }
     return client.execute({ sql, args })
   },
   async batch(statements: { sql: string; args: unknown[] }[]) {
