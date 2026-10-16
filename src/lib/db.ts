@@ -553,6 +553,7 @@ export const db = {
         LEFT JOIN Uom u ON p.uomId = u.id
         LEFT JOIN Purchase pur ON i.purchaseId = pur.id
         LEFT JOIN Supplier sup ON pur.supplierId = sup.id
+        WHERE i.qty > 0
         ORDER BY i.createdAt DESC
       `)
       return rs.rows.map((r) => {
