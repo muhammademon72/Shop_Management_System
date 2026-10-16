@@ -517,6 +517,27 @@ export const db = {
 
   // === InventoryStock (with product + purchase.supplier relations) ===
   inventoryStock: {
+    async delete(args: { where: { id: string } }) {
+      await client.execute({ sql: 'DELETE FROM InventoryStock WHERE id = ?', args: [args.where.id] })
+      return { success: true }
+    },
+    async create(args: { data: Record<string, unknown> }) {
+      const data = { id: genId(), createdAt: now(), updatedAt: now(), ...args.data }
+      const cols = Object.keys(data)
+      const vals = Object.values(data)
+      const placeholders = cols.map(() => '?').join(', ')
+      const sql = `INSERT INTO InventoryStock (${cols.join(', ')}) VALUES (${placeholders}) RETURNING *`
+      const rs = await client.execute({ sql, args: vals })
+      return row(rs.rows[0])
+    },
+    async update(args: { where: { id: string }; data: Record<string, unknown> }) {
+      const updateData = { ...args.data, updatedAt: now() }
+      const sets = Object.keys(updateData).map((k) => `${k} = ?`)
+      const vals = [...Object.values(updateData), args.where.id]
+      const sql = `UPDATE InventoryStock SET ${sets.join(', ')} WHERE id = ? RETURNING *`
+      const rs = await client.execute({ sql, args: vals })
+      return row(rs.rows[0])
+    },
     async count() {
       const rs = await client.execute('SELECT COUNT(*) as count FROM InventoryStock')
       return Number(rs.rows[0]?.count ?? 0)

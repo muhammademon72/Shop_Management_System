@@ -55,6 +55,7 @@ export function InventoryModule() {
   const [open, setOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<FormState | null>(null)
   const [deletingId, setDeletingId] = React.useState<string | null>(null)
+  const [viewing, setViewing] = React.useState<InventoryStock | null>(null)
 
   const { data, isLoading } = useQuery<InventoryStock[]>({
     queryKey: ["inventory"],
@@ -389,6 +390,32 @@ export function InventoryModule() {
             />
           </div>
         </div>
+      </FormDialog>
+
+            {/* View dialog */}
+      <FormDialog
+        open={!!viewing}
+        onOpenChange={(o) => !o && setViewing(null)}
+        title={`Inventory ${viewing?.invoice ?? ""}`}
+        size="md"
+        hideFooter
+        footer={<Button variant="outline" onClick={() => setViewing(null)}>Close</Button>}
+      >
+        {viewing && (
+          <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+            <div><span className="text-muted-foreground">Date:</span> <span className="font-medium">{formatDate(viewing.date)}</span></div>
+            <div><span className="text-muted-foreground">Invoice:</span> <span className="font-medium">{viewing.invoice}</span></div>
+            <div><span className="text-muted-foreground">Product:</span> <span className="font-medium">{viewing.product?.name ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Brand:</span> <span className="font-medium">{viewing.brand ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Model:</span> <span className="font-medium">{viewing.model ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Serial:</span> <span className="font-mono text-sm">{viewing.serial ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Condition:</span> <span className="font-medium">{viewing.condition ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Warranty:</span> <span className="font-medium">{viewing.warrantyText ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Qty:</span> <span className="font-medium">{viewing.qty}</span></div>
+            <div><span className="text-muted-foreground">UOM:</span> <span className="font-medium">{viewing.uom ?? viewing.product?.uom?.name ?? "—"}</span></div>
+            <div className="sm:col-span-2"><span className="text-muted-foreground">Remarks:</span> <span>{viewing.remarks ?? "—"}</span></div>
+          </div>
+        )}
       </FormDialog>
 
       <ConfirmDialog
