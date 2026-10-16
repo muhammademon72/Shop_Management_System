@@ -76,7 +76,7 @@ const newItem = (): ItemRow => ({
 const emptyForm = (): PurchaseForm => ({
   purchaseDate: toInputDate(new Date()),
   supplierId: null,
-  invoiceNo: `PUR-${Date.now().toString().slice(-6)}`,
+  invoiceNo: "",
   attachment: "",
   discount: "0",
   remarks: "",
