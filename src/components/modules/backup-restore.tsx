@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Download, Upload, DatabaseBackup, Loader2, FileJson } from "lucide-react"
+import { Download, Upload, DatabaseBackup, Loader2, FileJson, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -55,6 +55,26 @@ export function BackupRestoreModule() {
     },
     onError: (e: Error) => toast.error(e.message),
   })
+
+
+  const deleteAllMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/backup", { method: "DELETE" })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || "Delete failed")
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      toast.success("All data deleted successfully")
+      setDeleteConfirmOpen(false)
+      qc.invalidateQueries()
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false)
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -134,6 +154,38 @@ export function BackupRestoreModule() {
           </CardContent>
         </Card>
 
+        <Card className="lg:col-span-2 border-rose-200 py-4">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2 text-rose-600">
+              <Trash2 className="h-4 w-4" /> Delete All Data
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <p className="text-muted-foreground text-sm">
+              This will <span className="text-destructive font-medium">permanently delete</span>{" "}
+              all data from the database (categories, brands, products, suppliers,
+              purchases, inventory, customers, quotations, sells, company profile).
+              User accounts will be kept. <strong className="text-destructive">This action cannot be undone.</strong>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              💡 Tip: Export a backup first before deleting all data.
+            </p>
+            <Button
+              variant="destructive"
+              onClick={() => setDeleteConfirmOpen(true)}
+              disabled={deleteAllMutation.isPending}
+              className="w-fit"
+            >
+              {deleteAllMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
+              )}
+              Delete All Data
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card className="lg:col-span-2 py-4">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -178,6 +230,15 @@ export function BackupRestoreModule() {
         onConfirm={() =>
           pendingImport !== null && importMutation.mutate(pendingImport)
         }
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete ALL data?"
+        description="This will permanently delete all data (except user accounts) from the database. This action CANNOT be undone. Are you absolutely sure?"
+        loading={deleteAllMutation.isPending}
+        onConfirm={() => deleteAllMutation.mutate()}
       />
     </div>
   )
