@@ -1,11 +1,7 @@
 export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
-import { writeFile, mkdir } from "fs/promises"
-import path from "path"
-import { existsSync } from "fs"
-import os from "os"
 
-const MAX_BYTES = 10 * 1024 * 1024 // 10 MB
+const MAX_BYTES = 5 * 1024 * 1024 // 5 MB (data URLs are larger than raw files)
 const ALLOWED_BUCKETS = new Set(["purchases", "logos", "company", "misc"])
 
 export async function POST(req: Request) {
@@ -23,43 +19,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "File is empty" }, { status: 400 })
     }
     if (file.size > MAX_BYTES) {
-      return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 413 })
+      return NextResponse.json({ error: "File too large (max 5MB for data URL storage)" }, { status: 413 })
     }
 
-    const safeName = String(file.name).replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 200)
-    const timestamp = Date.now()
-    const filename = `${timestamp}_${safeName}`
-
-    // On Vercel, the filesystem is read-only except for /tmp.
-    // Save to /tmp/uploads/<bucket>/ for the current request lifetime.
-    // For local dev, save to public/uploads/ which is persistent.
-    const isVercel = !!process.env.VERCEL
-    let filePath: string
-    let publicUrl: string
-
-    if (isVercel) {
-      // Vercel: save to /tmp (ephemeral, but works for the session)
-      const tmpDir = path.join(os.tmpdir(), "uploads", bucket)
-      if (!existsSync(tmpDir)) {
-        await mkdir(tmpDir, { recursive: true })
-      }
-      filePath = path.join(tmpDir, filename)
-      publicUrl = `/api/file/${bucket}/${filename}` // serve via a file API
-    } else {
-      // Local: save to public/uploads/ (persistent)
-      const uploadRoot = path.join(process.cwd(), "public", "uploads", bucket)
-      if (!existsSync(uploadRoot)) {
-        await mkdir(uploadRoot, { recursive: true })
-      }
-      filePath = path.join(uploadRoot, filename)
-      publicUrl = `/uploads/${bucket}/${filename}`
-    }
-
+    // Convert file to base64 data URL — this works on Vercel because the data
+    // is stored as a string in the database, not as a file on the filesystem.
     const buffer = Buffer.from(await file.arrayBuffer())
-    await writeFile(filePath, buffer)
+    const base64 = buffer.toString("base64")
+    const mimeType = file.type || "application/octet-stream"
+    const dataUrl = `data:${mimeType};base64,${base64}`
 
     return NextResponse.json({
-      url: publicUrl,
+      url: dataUrl,
       name: file.name,
       size: file.size,
       type: file.type,
