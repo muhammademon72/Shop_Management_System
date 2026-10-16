@@ -1,87 +1,85 @@
+export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 
-/**
- * Decrement inventory stock for a single SellItem's product. Pulls from the
- * earliest inventory rows first (FIFO) so older stock is consumed first.
- * Rows that hit qty 0 are deleted so the inventory list stays clean.
- *
- * Returns true on success or false if there wasn't enough stock (caller may
- * choose to ignore — sell record is still created; we don't block the sell
- * on partial stock because the user might be selling pre-booked items).
- */
-async function decrementInventory(
-  tx: Parameters<Parameters<typeof db.$transaction>[0]>[0],
-  productId: string | null,
-  qtyToDecrement: number,
-): Promise<void> {
-  if (!productId || qtyToDecrement <= 0) return
-  let remaining = qtyToDecrement
-  // Order by createdAt asc → oldest first (FIFO).
-  const rows = await tx.inventoryStock.findMany({
-    where: { productId, qty: { gt: 0 } },
-    orderBy: { createdAt: "asc" },
-  })
-  for (const row of rows) {
-    if (remaining <= 0) break
-    const take = Math.min(row.qty, remaining)
-    const newQty = row.qty - take
-    remaining -= take
-    if (newQty <= 0) {
-      await tx.inventoryStock.delete({ where: { id: row.id } })
-    } else {
-      await tx.inventoryStock.update({
-        where: { id: row.id },
-        data: { qty: newQty },
-      })
-    }
+function genId(): string {
+  return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
+}
+function now(): number { return Date.now() }
+const toStr = (v: unknown): string | null => v === null || v === undefined || v === "" ? null : typeof v === "object" ? JSON.stringify(v) : String(v)
+const toNum = (v: unknown): number => typeof v === "number" ? v : Number(v ?? 0) || 0
+
+// Decrement inventory (FIFO by productId, single row merge)
+async function decrementInventory(productId: string, qty: number) {
+  const rs = await db.execute('SELECT id, qty FROM InventoryStock WHERE productId = ? ORDER BY createdAt ASC LIMIT 1', [productId])
+  if (rs.rows.length) {
+    const row = rs.rows[0] as Record<string, unknown>
+    const newQty = Math.max(0, Number(row.qty) - qty)
+    await db.execute('UPDATE InventoryStock SET qty = ? WHERE id = ?', [newQty, row.id])
   }
-  // If `remaining > 0` here, we ran out of stock — silently ignore (see note above).
 }
 
-/**
- * Restore inventory stock for a single SellItem's product (used when a Sell
- * is edited or deleted — we put the units back so the stock is correct).
- * Adds a new InventoryStock row with the item's brand/model/serial so the
- * restoration is auditable.
- */
-async function restoreInventory(
-  tx: Parameters<Parameters<typeof db.$transaction>[0]>[0],
-  productId: string | null,
-  qtyToRestore: number,
-  brand: string | null,
-  model: string | null,
-  serial: string | null,
-  uomName: string | null,
-  invoice: string,
-  date: Date,
-): Promise<void> {
-  if (!productId || qtyToRestore <= 0) return
-  await tx.inventoryStock.create({
-    data: {
-      date,
-      invoice,
-      productId,
-      brand,
-      model,
-      serial,
-      qty: qtyToRestore,
-      uom: uomName,
-      remarks: "Restored from Sell (edit/delete)",
-    },
-  })
+// Restore inventory (merge back into existing row)
+async function restoreInventory(productId: string, qty: number, brand: string | null, model: string | null, serial: string | null, invoice: string, date: number) {
+  const rs = await db.execute('SELECT id, qty FROM InventoryStock WHERE productId = ? ORDER BY createdAt ASC LIMIT 1', [productId])
+  if (rs.rows.length) {
+    const row = rs.rows[0] as Record<string, unknown>
+    await db.execute('UPDATE InventoryStock SET qty = ? WHERE id = ?', [Number(row.qty) + qty, row.id])
+  } else {
+    const id = genId()
+    await db.execute(
+      'INSERT INTO InventoryStock (id, date, invoice, productId, brand, model, serial, qty, uom, remarks, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [id, date, invoice, productId, brand, model, serial, qty, null, 'Restored from Sell', now(), now()]
+    )
+  }
 }
 
 export async function GET() {
   try {
-    const items = await db.sell.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        customer: true,
-        items: { include: { product: true } },
-      },
+    const rs = await db.execute(`
+      SELECT s.*, c.name as "customer.name", c.id as "customer.id",
+             c.mobile as "customer.mobile", c.address as "customer.address"
+      FROM Sell s
+      LEFT JOIN Customer c ON s.customerId = c.id
+      ORDER BY s.createdAt DESC
+    `)
+    const sells = rs.rows.map((r: Record<string, unknown>) => {
+      const obj: Record<string, unknown> = {}
+      const customer: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(r)) {
+        if (k.startsWith('customer.')) {
+          const field = k.split('.')[1]
+          if (v !== null) customer[field] = v
+        } else {
+          obj[k] = v instanceof Uint8Array ? Buffer.from(v).toString('utf8') : v
+        }
+      }
+      obj.customer = Object.keys(customer).length ? customer : null
+      return obj
     })
-    return NextResponse.json(items)
+    for (const s of sells) {
+      const itemsRs = await db.execute(`
+        SELECT si.*, p.name as "product.name", p.id as "product.id"
+        FROM SellItem si
+        LEFT JOIN Product p ON si.productId = p.id
+        WHERE si.sellId = ?
+      `, [s.id])
+      s.items = itemsRs.rows.map((r: Record<string, unknown>) => {
+        const obj: Record<string, unknown> = {}
+        const product: Record<string, unknown> = {}
+        for (const [k, v] of Object.entries(r)) {
+          if (k.startsWith('product.')) {
+            const field = k.split('.')[1]
+            if (v !== null) product[field] = v
+          } else {
+            obj[k] = v instanceof Uint8Array ? Buffer.from(v).toString('utf8') : v
+          }
+        }
+        obj.product = Object.keys(product).length ? product : null
+        return obj
+      })
+    }
+    return NextResponse.json(sells)
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }
@@ -91,55 +89,40 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const items = Array.isArray(body.items) ? body.items : []
-    const totalPrice = Number(body.totalPrice ?? 0)
-    const discount = Number(body.discount ?? 0)
+    const totalPrice = toNum(body.totalPrice)
+    const discount = toNum(body.discount)
     const grandTotal = totalPrice - discount
-    const paidAmount = Number(body.paidAmount ?? 0)
+    const paidAmount = toNum(body.paidAmount)
     const dueAmount = Math.max(0, grandTotal - paidAmount)
+    const sellId = genId()
+    const ts = now()
 
-    const created = await db.$transaction(async (tx) => {
-      const sell = await tx.sell.create({
-        data: {
-          sellDate: body.sellDate ? new Date(body.sellDate) : new Date(),
-          customerId: body.customerId ? String(body.customerId) : null,
-          invoiceNo: String(body.invoiceNo ?? "").trim(),
-          totalPrice,
-          discount,
-          grandTotal,
-          paidAmount,
-          dueAmount,
-          remarks: body.remarks ? String(body.remarks) : null,
-          items: {
-            create: items.map((it: Record<string, unknown>) => ({
-              productId: it.productId ? String(it.productId) : null,
-              brand: it.brand ? String(it.brand) : null,
-              model: it.model ? String(it.model) : null,
-              serial: it.serial ? String(it.serial) : null,
-              condition: it.condition ? String(it.condition) : null,
-              qty: Number(it.qty ?? 0),
-              price: Number(it.price ?? 0),
-              total: Number(it.total ?? 0),
-              remarks: it.remarks ? String(it.remarks) : null,
-            })),
-          },
-        },
-        include: { customer: true, items: { include: { product: true } } },
-      })
+    await db.execute(
+      'INSERT INTO Sell (id, sellDate, customerId, invoiceNo, totalPrice, discount, grandTotal, paidAmount, dueAmount, remarks, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [sellId,
+       body.sellDate ? new Date(String(body.sellDate)).getTime() : ts,
+       body.customerId ? String(body.customerId) : null,
+       String(body.invoiceNo ?? "").trim(),
+       totalPrice, discount, grandTotal, paidAmount, dueAmount,
+       body.remarks ? String(body.remarks) : null, ts, ts]
+    )
 
-      // Decrement inventory stock for each sell line item (FIFO).
-      // Inventory is reduced ONLY for items that have a productId linked —
-      // free-text items (productId null) don't have an inventory trail.
-      for (const it of items) {
-        const pid = it.productId ? String(it.productId) : null
-        const qty = Number(it.qty ?? 0)
-        if (!pid || qty <= 0) continue
-        await decrementInventory(tx, pid, qty)
-      }
+    for (const it of items) {
+      const itemId = genId()
+      const qty = toNum(it.qty)
+      await db.execute(
+        'INSERT INTO SellItem (id, sellId, productId, brand, model, serial, condition, qty, price, total, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [itemId, sellId,
+         it.productId ? String(it.productId) : null,
+         toStr(it.brand), toStr(it.model), toStr(it.serial), toStr(it.condition),
+         qty, toNum(it.price), toNum(it.total), toStr(it.remarks)]
+      )
+      // Decrement inventory
+      const pid = it.productId ? String(it.productId) : null
+      if (pid && qty > 0) await decrementInventory(pid, qty)
+    }
 
-      return sell
-    })
-
-    return NextResponse.json(created, { status: 201 })
+    return NextResponse.json({ id: sellId, invoiceNo: body.invoiceNo, success: true }, { status: 201 })
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }
@@ -150,98 +133,55 @@ export async function PUT(req: Request) {
     const body = await req.json()
     const { id, items: rawItems, ...rest } = body
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })
-
-    const totalPrice = Number(rest.totalPrice ?? 0)
-    const discount = Number(rest.discount ?? 0)
-    const grandTotal = totalPrice - discount
-    const paidAmount = Number(rest.paidAmount ?? 0)
-    const dueAmount = Math.max(0, grandTotal - paidAmount)
     const items = Array.isArray(rawItems) ? rawItems : []
+    const totalPrice = toNum(rest.totalPrice)
+    const discount = toNum(rest.discount)
+    const grandTotal = totalPrice - discount
+    const paidAmount = toNum(rest.paidAmount)
+    const dueAmount = Math.max(0, grandTotal - paidAmount)
+    const ts = now()
 
-    const updated = await db.$transaction(async (tx) => {
-      // Capture the OLD sell's items so we can restore their inventory qty
-      // before applying the new line items.
-      const oldSell = await tx.sell.findUnique({
-        where: { id: String(id) },
-        include: { items: true },
-      })
-      if (oldSell) {
-        for (const oldIt of oldSell.items) {
-          if (!oldIt.productId || (oldIt.qty ?? 0) <= 0) continue
-          let uomName: string | null = null
-          if (oldIt.productId) {
-            const prod = await tx.product.findUnique({
-              where: { id: oldIt.productId },
-              include: { uom: true },
-            })
-            uomName = prod?.uom?.name ?? null
-          }
-          await restoreInventory(
-            tx,
-            oldIt.productId,
-            oldIt.qty,
-            oldIt.brand,
-            oldIt.model,
-            oldIt.serial,
-            uomName,
-            oldSell.invoiceNo,
-            oldSell.sellDate,
-          )
-        }
+    // Restore old items to inventory
+    const oldItemsRs = await db.execute('SELECT productId, qty, brand, model, serial FROM SellItem WHERE sellId = ?', [String(id)])
+    for (const oldIt of oldItemsRs.rows) {
+      const row = oldIt as Record<string, unknown>
+      const pid = row.productId ? String(row.productId) : null
+      const qty = Number(row.qty) || 0
+      if (pid && qty > 0) {
+        await restoreInventory(pid, qty, toStr(row.brand), toStr(row.model), toStr(row.serial),
+          String(rest.invoiceNo ?? ""), ts)
       }
+    }
 
-      // Delete existing items (we'll re-create them with the new payload).
-      await tx.sellItem.deleteMany({ where: { sellId: String(id) } })
+    // Delete old items
+    await db.execute('DELETE FROM SellItem WHERE sellId = ?', [String(id)])
 
-      const sell = await tx.sell.update({
-        where: { id: String(id) },
-        data: {
-          ...(rest.sellDate !== undefined && {
-            sellDate: new Date(rest.sellDate),
-          }),
-          ...(rest.customerId !== undefined && {
-            customerId: rest.customerId ? String(rest.customerId) : null,
-          }),
-          ...(rest.invoiceNo !== undefined && {
-            invoiceNo: String(rest.invoiceNo),
-          }),
-          totalPrice,
-          discount,
-          grandTotal,
-          paidAmount,
-          dueAmount,
-          ...(rest.remarks !== undefined && {
-            remarks: rest.remarks ? String(rest.remarks) : null,
-          }),
-          items: {
-            create: items.map((it: Record<string, unknown>) => ({
-              productId: it.productId ? String(it.productId) : null,
-              brand: it.brand ? String(it.brand) : null,
-              model: it.model ? String(it.model) : null,
-              serial: it.serial ? String(it.serial) : null,
-              condition: it.condition ? String(it.condition) : null,
-              qty: Number(it.qty ?? 0),
-              price: Number(it.price ?? 0),
-              total: Number(it.total ?? 0),
-              remarks: it.remarks ? String(it.remarks) : null,
-            })),
-          },
-        },
-        include: { customer: true, items: { include: { product: true } } },
-      })
+    // Update sell
+    await db.execute(
+      'UPDATE Sell SET sellDate = ?, customerId = ?, invoiceNo = ?, totalPrice = ?, discount = ?, grandTotal = ?, paidAmount = ?, dueAmount = ?, remarks = ?, updatedAt = ? WHERE id = ?',
+      [rest.sellDate ? new Date(String(rest.sellDate)).getTime() : ts,
+       rest.customerId ? String(rest.customerId) : null,
+       String(rest.invoiceNo ?? ""),
+       totalPrice, discount, grandTotal, paidAmount, dueAmount,
+       rest.remarks ? String(rest.remarks) : null, ts, String(id)]
+    )
 
-      // Decrement inventory stock for the new line items.
-      for (const it of items) {
-        const pid = it.productId ? String(it.productId) : null
-        const qty = Number(it.qty ?? 0)
-        if (!pid || qty <= 0) continue
-        await decrementInventory(tx, pid, qty)
-      }
+    // Insert new items + decrement inventory
+    for (const it of items) {
+      const itemId = genId()
+      const qty = toNum(it.qty)
+      await db.execute(
+        'INSERT INTO SellItem (id, sellId, productId, brand, model, serial, condition, qty, price, total, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [itemId, String(id),
+         it.productId ? String(it.productId) : null,
+         toStr(it.brand), toStr(it.model), toStr(it.serial), toStr(it.condition),
+         qty, toNum(it.price), toNum(it.total), toStr(it.remarks)]
+      )
+      const pid = it.productId ? String(it.productId) : null
+      if (pid && qty > 0) await decrementInventory(pid, qty)
+    }
 
-      return sell
-    })
-
-    return NextResponse.json(updated)
+    return NextResponse.json({ id: String(id), success: true })
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }
@@ -252,39 +192,23 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get("id")
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })
+    const ts = now()
 
-    await db.$transaction(async (tx) => {
-      // Restore inventory for every line item before deleting the sell.
-      const sell = await tx.sell.findUnique({
-        where: { id },
-        include: { items: true },
-      })
-      if (sell) {
-        for (const it of sell.items) {
-          if (!it.productId || (it.qty ?? 0) <= 0) continue
-          let uomName: string | null = null
-          if (it.productId) {
-            const prod = await tx.product.findUnique({
-              where: { id: it.productId },
-              include: { uom: true },
-            })
-            uomName = prod?.uom?.name ?? null
-          }
-          await restoreInventory(
-            tx,
-            it.productId,
-            it.qty,
-            it.brand,
-            it.model,
-            it.serial,
-            uomName,
-            sell.invoiceNo,
-            sell.sellDate,
-          )
-        }
+    // Restore inventory for each item
+    const itemsRs = await db.execute('SELECT productId, qty, brand, model, serial FROM SellItem WHERE sellId = ?', [id])
+    for (const it of itemsRs.rows) {
+      const row = it as Record<string, unknown>
+      const pid = row.productId ? String(row.productId) : null
+      const qty = Number(row.qty) || 0
+      if (pid && qty > 0) {
+        await restoreInventory(pid, qty, toStr(row.brand), toStr(row.model), toStr(row.serial),
+          '', ts)
       }
-      await tx.sell.delete({ where: { id } })
-    })
+    }
+
+    // Delete items + sell
+    await db.execute('DELETE FROM SellItem WHERE sellId = ?', [id])
+    await db.execute('DELETE FROM Sell WHERE id = ?', [id])
 
     return NextResponse.json({ success: true })
   } catch (e) {

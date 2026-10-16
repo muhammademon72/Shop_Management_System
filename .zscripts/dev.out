@@ -1341,3 +1341,7 @@ Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allow
  GET /api/stats 200 in 7ms (compile: 1797µs, render: 5ms)
  GET /api/purchases 200 in 9ms (compile: 3ms, render: 7ms)
  DELETE /api/purchases?id=cmvb16donwd92lrx5 200 in 8ms (compile: 1480µs, render: 7ms)
+ GET / 200 in 30ms (compile: 4ms, render: 27ms)
+ GET / 200 in 24ms (compile: 1489µs, render: 22ms)
+ GET / 200 in 31ms (compile: 3ms, render: 29ms)
+ GET /api/sells 200 in 132ms (compile: 127ms, render: 5ms)
