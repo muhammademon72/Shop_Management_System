@@ -262,12 +262,12 @@ export async function POST(req: Request) {
       for (const it of s.items ?? []) {
         const itemId = genId()
         await db.execute({
-          sql: 'INSERT INTO SellItem (id, sellId, productId, brand, model, serial, condition, qty, price, total, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          sql: 'INSERT INTO SellItem (id, sellId, productId, brand, model, serial, condition, warrantyText, qty, price, total, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           args: [
             itemId, id,
             it.productId && idMap.product[it.productId] ? idMap.product[it.productId] : null,
             toStr(it.brand), toStr(it.model), toStr(it.serial),
-            toStr(it.condition),
+            toStr(it.condition), toStr(it.warrantyText),
             toNum(it.qty), toNum(it.price), toNum(it.total), toStr(it.remarks)
           ]
         })

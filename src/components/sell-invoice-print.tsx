@@ -51,13 +51,14 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
   const due = sell.dueAmount
 
   const rows = items.length === 0
-    ? `<tr><td colspan="6" style="padding:24px;text-align:center;color:#6b7280;font-style:italic;">No line items.</td></tr>`
+    ? `<tr><td colspan="7" style="padding:24px;text-align:center;color:#6b7280;font-style:italic;">No line items.</td></tr>`
     : items.map((it, idx) => {
         const name = it.product?.name ?? "—"
         const brand = it.brand ?? null
         const model = it.model ?? null
         const serial = it.serial ?? null
         const condition = it.condition ?? null
+        const warranty = it.warrantyText ?? null
 
         const badges: string[] = []
         if (brand) badges.push(`<span class="badge brand">Brand: ${escape(brand)}</span>`)
@@ -76,6 +77,7 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
               <div class="badges">${badges.join("")}</div>
             </td>
             <td class="center">${condition ? `<span class="pill green">${escape(condition)}</span>` : "—"}</td>
+            <td class="center">${warranty ? `<span class="pill amber">${escape(warranty)}</span>` : "—"}</td>
             <td class="num">${it.qty}</td>
             <td class="num">${formatCurrency(it.price)}</td>
             <td class="num bold">${formatCurrency(it.total)}</td>
@@ -218,6 +220,7 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
       border-radius: 999px;
     }
     .pill.green { background: #D1FAE5; color: #065F46; }
+    .pill.amber { background: #FEF3C7; color: #92400E; }
 
     /* === FOOTER === */
     .footer {
@@ -335,6 +338,7 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
           <th style="width:40px;">No.</th>
           <th>Product Specifications</th>
           <th style="width:90px;">Condition</th>
+          <th style="width:90px;">Warranty</th>
           <th style="width:60px;">Qty</th>
           <th style="width:100px;">Price</th>
           <th style="width:110px;">Total</th>

@@ -22,7 +22,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { SearchableSelect } from "@/components/searchable-select"
 import { PageHeader } from "@/components/page-header"
 import { printSellInvoice } from "@/components/sell-invoice-print"
-import type { Sell, SellItem, Customer, Product, Brand, Condition, CompanyProfile, InventoryStock } from "@/lib/types"
+import type { Sell, SellItem, Customer, Product, Brand, Condition, Warranty, CompanyProfile, InventoryStock } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
 
 interface ItemRow {
@@ -32,6 +32,7 @@ interface ItemRow {
   model: string
   serial: string
   condition: string
+  warranty: string
   qty: string
   price: string
   total: number
@@ -55,6 +56,7 @@ const newItem = (): ItemRow => ({
   model: "",
   serial: "",
   condition: "",
+  warranty: "",
   qty: "1",
   price: "0",
   total: 0,
@@ -191,6 +193,15 @@ export function SellsModule() {
     },
   })
 
+  const { data: warranties } = useQuery<Warranty[]>({
+    queryKey: ["warranties"],
+    queryFn: async () => {
+      const res = await fetch("/api/warranties")
+      if (!res.ok) throw new Error("Failed")
+      return res.json()
+    },
+  })
+
   const { data: company } = useQuery<CompanyProfile | null>({
     queryKey: ["company"],
     queryFn: async () => {
@@ -211,6 +222,7 @@ export function SellsModule() {
           model: it.model || null,
           serial: it.serial || null,
           condition: it.condition || null,
+          warrantyText: it.warranty || null,
           qty: Number(it.qty) || 0,
           price: Number(it.price) || 0,
           total: Number(it.qty || 0) * Number(it.price || 0),
@@ -313,6 +325,7 @@ export function SellsModule() {
         model: it.model ?? "",
         serial: it.serial ?? "",
         condition: it.condition ?? "",
+        warranty: it.warrantyText ?? "",
         qty: String(it.qty),
         price: String(it.price),
         total: it.total,
@@ -496,7 +509,7 @@ export function SellsModule() {
           </div>
         </div>
 
-        {/* === Line items table — 8 columns + Actions === */}
+        {/* === Line items table — 9 columns + Actions === */}
         <div className="rounded-md border border-gray-300 bg-white p-3">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-medium">
@@ -507,7 +520,7 @@ export function SellsModule() {
             <table className="w-full border-collapse text-xs">
               <thead>
                 <tr style={{ background: "#9DC3E6" }} className="text-black">
-                  {["Product", "Brand", "Model", "Serial", "Condition", "Qty", "Price", "Total", "Actions"].map((h) => (
+                  {["Product", "Brand", "Model", "Serial", "Condition", "Warranty", "Qty", "Price", "Total", "Actions"].map((h) => (
                     <th key={h} className="border border-gray-400 px-2 py-1.5 text-center font-bold whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -576,6 +589,22 @@ export function SellsModule() {
                         </Select>
                       </td>
                       <td className="border border-gray-300 p-1">
+                        <Select
+                          value={it.warranty || "none"}
+                          onValueChange={(v) => updateItem(idx, { warranty: v === "none" ? "" : v })}
+                        >
+                          <SelectTrigger className="h-8 min-w-[90px] border-0 bg-transparent px-1 text-xs focus:ring-0">
+                            <SelectValue placeholder="—" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">—</SelectItem>
+                            {(warranties ?? []).map((w) => (
+                              <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="border border-gray-300 p-1">
                         <Input type="number" min="0" step="any" value={it.qty} onChange={(e) => updateItem(idx, { qty: e.target.value })} className="h-8 min-w-[60px] border-0 bg-transparent px-1 text-xs text-center focus-visible:ring-0" />
                       </td>
                       <td className="border border-gray-300 p-1">
@@ -595,7 +624,7 @@ export function SellsModule() {
               </tbody>
               <tfoot>
                 <tr className="bg-gray-50">
-                  <td colSpan={7} className="border border-gray-300 px-3 py-2 text-right font-bold">Total Amount:</td>
+                  <td colSpan={8} className="border border-gray-300 px-3 py-2 text-right font-bold">Total Amount:</td>
                   <td className="border-2 border-black px-2 py-2 text-right font-bold">{formatCurrency(totalPrice)}</td>
                   <td className="border border-gray-300 px-2 py-2 text-center">
                     <Button type="button" size="sm" onClick={addItem} variant="outline">
@@ -693,14 +722,14 @@ export function SellsModule() {
               <table className="w-full border-collapse text-xs">
                 <thead>
                   <tr style={{ background: "#9DC3E6" }} className="text-black">
-                    {["Product", "Brand", "Model", "Serial", "Condition", "Qty", "Price", "Total"].map((h) => (
+                    {["Product", "Brand", "Model", "Serial", "Condition", "Warranty", "Qty", "Price", "Total"].map((h) => (
                       <th key={h} className="border border-gray-400 px-2 py-1.5 text-center font-bold whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {(viewing.items ?? []).length === 0 ? (
-                    <tr><td colSpan={8} className="border border-gray-300 px-3 py-6 text-center text-muted-foreground">No line items.</td></tr>
+                    <tr><td colSpan={9} className="border border-gray-300 px-3 py-6 text-center text-muted-foreground">No line items.</td></tr>
                   ) : (
                     (viewing.items ?? []).map((it, idx) => (
                       <tr key={it.id ?? idx} className="bg-white">
@@ -709,6 +738,7 @@ export function SellsModule() {
                         <td className="border border-gray-300 px-2 py-1">{it.model ?? "—"}</td>
                         <td className="border border-gray-300 px-2 py-1 font-mono">{it.serial ?? "—"}</td>
                         <td className="border border-gray-300 px-2 py-1 text-center">{it.condition ?? "—"}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{it.warrantyText ?? "—"}</td>
                         <td className="border border-gray-300 px-2 py-1 text-center">{it.qty ?? "—"}</td>
                         <td className="border border-gray-300 px-2 py-1 text-right">{formatCurrency(it.price)}</td>
                         <td className="border border-gray-300 px-2 py-1 text-right font-medium">{formatCurrency(it.total)}</td>
@@ -719,7 +749,7 @@ export function SellsModule() {
                 {viewing.items && viewing.items.length > 0 && (
                   <tfoot>
                     <tr className="bg-gray-50">
-                      <td colSpan={7} className="border border-gray-300 px-3 py-2 text-right font-bold">Total Amount:</td>
+                      <td colSpan={8} className="border border-gray-300 px-3 py-2 text-right font-bold">Total Amount:</td>
                       <td className="border-2 border-black px-2 py-2 text-right font-bold">{formatCurrency(viewing.grandTotal)}</td>
                     </tr>
                   </tfoot>

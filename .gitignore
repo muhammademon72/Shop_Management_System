@@ -36,6 +36,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# tool artifacts (transient read caches from agent tools)
+/tool-results/
+
+# z-ai agent transient script logs
+/.zscripts/
+
 
 # typescript
 *.tsbuildinfo

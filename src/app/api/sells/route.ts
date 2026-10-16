@@ -111,10 +111,10 @@ export async function POST(req: Request) {
       const itemId = genId()
       const qty = toNum(it.qty)
       await db.execute(
-        'INSERT INTO SellItem (id, sellId, productId, brand, model, serial, condition, qty, price, total, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO SellItem (id, sellId, productId, brand, model, serial, condition, warrantyText, qty, price, total, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [itemId, sellId,
          it.productId ? String(it.productId) : null,
-         toStr(it.brand), toStr(it.model), toStr(it.serial), toStr(it.condition),
+         toStr(it.brand), toStr(it.model), toStr(it.serial), toStr(it.condition), toStr(it.warrantyText),
          qty, toNum(it.price), toNum(it.total), toStr(it.remarks)]
       )
       // Decrement inventory
@@ -171,10 +171,10 @@ export async function PUT(req: Request) {
       const itemId = genId()
       const qty = toNum(it.qty)
       await db.execute(
-        'INSERT INTO SellItem (id, sellId, productId, brand, model, serial, condition, qty, price, total, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO SellItem (id, sellId, productId, brand, model, serial, condition, warrantyText, qty, price, total, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [itemId, String(id),
          it.productId ? String(it.productId) : null,
-         toStr(it.brand), toStr(it.model), toStr(it.serial), toStr(it.condition),
+         toStr(it.brand), toStr(it.model), toStr(it.serial), toStr(it.condition), toStr(it.warrantyText),
          qty, toNum(it.price), toNum(it.total), toStr(it.remarks)]
       )
       const pid = it.productId ? String(it.productId) : null
