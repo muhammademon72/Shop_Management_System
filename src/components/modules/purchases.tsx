@@ -430,7 +430,7 @@ export function PurchasesModule() {
                         href={row.attachment}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title={`View ${row.attachment.split("/").pop()}`}
+                        title="View attachment"
                         className="inline-flex items-center justify-center text-emerald-600 hover:text-emerald-700"
                       >
                         <FileCheck2 className="h-5 w-5" />
@@ -937,9 +937,9 @@ export function PurchasesModule() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[#0066cc] hover:underline"
-                          title={`View ${viewing.attachment.split("/").pop()}`}
+                          title="View attachment"
                         >
-                          {viewing.attachment.split("/").pop()}
+                          📎 View Attachment
                         </a>
                       ) : (
                         "—"
