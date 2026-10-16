@@ -722,22 +722,11 @@ export function PurchasesModule() {
                       />
                     </td>
                     <td className="border border-gray-300 p-1">
-                      <SearchableSelect
-                        value={it.brand || null}
-                        onValueChange={(v) =>
-                          updateItem(idx, { brand: v ?? "" })
-                        }
-                        options={(brands ?? []).map((b) => ({
-                          value: b.name,
-                          label: b.name,
-                        }))}
+                      <Input
+                        value={it.brand}
+                        onChange={(e) => updateItem(idx, { brand: e.target.value })}
                         placeholder="—"
-                        searchPlaceholder="Search brand..."
-                        emptyText="No brand found."
-                        allowNone
-                        noneLabel="—"
-                        compact
-                        triggerClassName="min-w-[100px]"
+                        className="h-8 min-w-[100px] border-0 bg-transparent px-1 text-xs focus-visible:ring-0"
                       />
                     </td>
                     <td className="border border-gray-300 p-1">
