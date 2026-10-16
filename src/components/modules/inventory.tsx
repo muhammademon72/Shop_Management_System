@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Pencil, Plus, Trash2 } from "lucide-react"
+import { Pencil, Plus, Trash2, Eye } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -205,33 +205,48 @@ export function InventoryModule() {
       key: "date",
       header: "Date",
       cell: (row) => (
-        <span className="text-muted-foreground">{formatDate(row.date)}</span>
+        <span className="text-muted-foreground text-xs">{formatDate(row.date)}</span>
       ),
     },
-    { key: "invoice", header: "Invoice", cell: (row) => row.invoice },
-    {
-      key: "product",
-      header: "Product",
-      cell: (row) => row.product?.name ?? "—",
-    },
-    { key: "brand", header: "Brand", cell: (row) => row.brand ?? "—" },
-    { key: "model", header: "Model", cell: (row) => row.model ?? "—" },
-    { key: "serial", header: "Serial", cell: (row) => row.serial ?? "—" },
-    {
-      key: "qty",
-      header: "Qty",
-      cell: (row) => (
-        <span className="font-medium">{row.qty}</span>
-      ),
-    },
-    { key: "uom", header: "UOM", cell: (row) => row.uom ?? row.product?.uom?.name ?? "—" },
+    { key: "invoice", header: "Invoice", cell: (row) => <span className="text-xs">{row.invoice}</span> },
+    { key: "product", header: "Product", cell: (row) => <span className="text-xs">{row.product?.name ?? "—"}</span> },
+    { key: "brand", header: "Brand", cell: (row) => <span className="text-xs">{row.brand ?? "—"}</span> },
+    { key: "model", header: "Model", cell: (row) => <span className="text-xs">{row.model ?? "—"}</span> },
+    { key: "serial", header: "Serial", cell: (row) => <span className="text-xs font-mono">{row.serial ?? "—"}</span> },
+    { key: "condition", header: "Condition", cell: (row) => <span className="text-xs">{row.condition ?? "—"}</span> },
+    { key: "warrantyText", header: "Warranty", cell: (row) => <span className="text-xs">{row.warrantyText ?? "—"}</span> },
+    { key: "qty", header: "Qty", cell: (row) => <span className="text-xs font-medium">{row.qty}</span> },
+    { key: "uom", header: "UOM", cell: (row) => <span className="text-xs">{row.uom ?? row.product?.uom?.name ?? "—"}</span> },
     {
       key: "remarks",
       header: "Remarks",
       cell: (row) => (
-        <span className="text-muted-foreground max-w-xs truncate">
+        <span className="text-muted-foreground text-xs max-w-xs truncate">
           {row.remarks ?? "—"}
         </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Action",
+      cell: (row) => (
+        <div className="flex items-center gap-1">
+          <Button size="icon" variant="ghost" onClick={() => setViewing(row)} title="View">
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" onClick={() => handleEdit(row)} title="Edit">
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setDeletingId(row.id)}
+            title="Delete"
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     },
   ]
