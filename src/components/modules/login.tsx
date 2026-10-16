@@ -92,10 +92,6 @@ export function LoginModule() {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 rounded-md bg-muted/50 p-3 text-center text-xs text-muted-foreground">
-            <p>Default admin: admin@shop.com / admin123</p>
-          </div>
         </div>
       </div>
     </div>
