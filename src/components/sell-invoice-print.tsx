@@ -60,19 +60,21 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
         const condition = it.condition ?? null
         const warranty = it.warrantyText ?? null
 
-        // Stack Brand / Model / Serial each on its own line as small badges
-        // under the product name — mirrors the screenshot the user uploaded.
-        const specBadges: string[] = []
-        if (brand) specBadges.push(`<div class="badge brand">Brand: ${escape(brand)}</div>`)
-        if (model) specBadges.push(`<div class="badge model">Model: ${escape(model)}</div>`)
-        if (serial) specBadges.push(`<div class="badge serial">Serial: ${escape(serial)}</div>`)
+        // Horizontal comma-separated spec line under the product name, e.g.:
+        //   Brand: Dell, Model: Dell Latitude 5400, Serial: BHKN2R2
+        // (per user screenshot showing the red-boxed detail line)
+        const specParts: string[] = []
+        if (brand) specParts.push(`<span class="spec-label">Brand:</span> ${escape(brand)}`)
+        if (model) specParts.push(`<span class="spec-label">Model:</span> ${escape(model)}`)
+        if (serial) specParts.push(`<span class="spec-label">Serial:</span> ${escape(serial)}`)
+        const specLine = specParts.join(", ")
 
         return `
           <tr>
             <td class="num">${idx + 1}</td>
             <td>
               <div class="prod-name">${escape(name)}</div>
-              ${specBadges.length ? `<div class="spec-stack">${specBadges.join("")}</div>` : ""}
+              ${specLine ? `<div class="spec-line">${specLine}</div>` : ""}
             </td>
             <td class="center">${condition ? `<span class="pill green">${escape(condition)}</span>` : "—"}</td>
             <td class="center">${warranty ? `<span class="pill amber">${escape(warranty)}</span>` : "—"}</td>
@@ -196,31 +198,19 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
     table.items td.center { text-align: center; }
     table.items td.bold { font-weight: 700; }
 
-    .prod-name { font-weight: 600; color: #111827; font-size: 13px; margin-bottom: 4px; }
-    /* Stacked Brand/Model/Serial badges — one per line under product name */
-    .spec-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      align-items: flex-start;
+    .prod-name { font-weight: 600; color: #111827; font-size: 13px; margin-bottom: 2px; }
+    /* Horizontal spec line under product name:
+       "Brand: Dell, Model: Dell Latitude 5400, Serial: BHKN2R2" */
+    .spec-line {
+      color: #4B5563;
+      font-size: 11px;
+      line-height: 1.45;
+      word-break: break-word;
     }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      font-size: 10px;
-      border: 1px solid #E5E7EB;
-      border-radius: 999px;
-      color: #374151;
-      background: #F9FAFB;
-      line-height: 1.4;
-      max-width: 280px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    .spec-line .spec-label {
+      color: #111827;
+      font-weight: 600;
     }
-    .badge.brand { background: #F9FAFB; border-color: #E5E7EB; color: #374151; }
-    .badge.model { background: #FEF3C7; border-color: #FDE68A; color: #92400E; }
-    .badge.serial { background: #EFF6FF; border-color: #BFDBFE; color: #1D4ED8; }
 
     .pill {
       display: inline-block;
