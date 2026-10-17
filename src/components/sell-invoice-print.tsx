@@ -179,15 +179,15 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
       margin-bottom: 20px;
     }
     table.items thead th {
-      background: #F3F4F6;
-      color: #374151;
+      background: #10B981;
+      color: #FFFFFF;
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
       padding: 10px 12px;
       text-align: left;
-      border-bottom: 2px solid #E5E7EB;
+      border-bottom: 2px solid #047857;
     }
     table.items tbody td {
       padding: 12px;
