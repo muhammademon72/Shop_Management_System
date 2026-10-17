@@ -60,21 +60,20 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
         const condition = it.condition ?? null
         const warranty = it.warrantyText ?? null
 
-        const badges: string[] = []
-        if (brand) badges.push(`<span class="badge brand">Brand: ${escape(brand)}</span>`)
-        if (model) badges.push(`<span class="badge model">Model: ${escape(model)}</span>`)
-        if (serial) badges.push(`<span class="badge serial">Serial: ${escape(serial)}</span>`)
-        // NOTE: condition is intentionally NOT included in the product-spec
-        // badges — it already appears in the dedicated "Condition" column on
-        // the right, so duplicating it here was redundant (the user reported
-        // "Refurbished" appearing twice and asked to remove the duplicate).
+        // Horizontal comma-separated spec line under the product name, e.g.:
+        //   Brand: Dell, Model: Dell Latitude 5400, Serial: BHKN2R2
+        const specParts: string[] = []
+        if (brand) specParts.push(`Brand: ${escape(brand)}`)
+        if (model) specParts.push(`Model: ${escape(model)}`)
+        if (serial) specParts.push(`Serial: ${escape(serial)}`)
+        const specLine = specParts.join(", ")
 
         return `
           <tr>
             <td class="num">${idx + 1}</td>
             <td>
               <div class="prod-name">${escape(name)}</div>
-              <div class="badges">${badges.join("")}</div>
+              ${specLine ? `<div class="spec-line">${specLine}</div>` : ""}
             </td>
             <td class="center">${condition ? `<span class="pill green">${escape(condition)}</span>` : "—"}</td>
             <td class="center">${warranty ? `<span class="pill amber">${escape(warranty)}</span>` : "—"}</td>
@@ -198,19 +197,14 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
     table.items td.center { text-align: center; }
     table.items td.bold { font-weight: 700; }
 
-    .prod-name { font-weight: 600; color: #111827; font-size: 13px; margin-bottom: 4px; }
-    .badges { display: flex; flex-wrap: wrap; gap: 4px; }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      font-size: 10px;
-      border: 1px solid #E5E7EB;
-      border-radius: 999px;
-      color: #374151;
-      background: #F9FAFB;
+    .prod-name { font-weight: 600; color: #111827; font-size: 13px; margin-bottom: 2px; }
+    /* Horizontal spec line under product name:
+       "Brand: Dell, Model: Dell Latitude 5400, Serial: BHKN2R2" */
+    .spec-line {
+      color: #4B5563;
+      font-size: 11px;
+      line-height: 1.4;
     }
-    .badge.serial { background: #EFF6FF; border-color: #BFDBFE; color: #1D4ED8; }
-    .badge.condition { background: #ECFDF5; border-color: #A7F3D0; color: #047857; }
 
     .pill {
       display: inline-block;
