@@ -268,6 +268,7 @@ function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
       text-transform: uppercase;
       padding: 10px 12px;
       text-align: left;
+      vertical-align: middle;
       border-bottom: 2px solid #047857;
     }
     table.items tbody td {

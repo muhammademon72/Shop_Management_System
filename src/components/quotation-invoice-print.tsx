@@ -177,6 +177,7 @@ function renderInvoiceHtml(q: Quotation, company: CompanyProfile | null): string
       text-transform: uppercase;
       padding: 10px 12px;
       text-align: left;
+      vertical-align: middle;
       border-bottom: 2px solid #E5E7EB;
     }
     table.items tbody td {
