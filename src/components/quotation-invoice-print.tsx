@@ -271,6 +271,14 @@ function renderInvoiceHtml(q: Quotation, company: CompanyProfile | null): string
     }
 
     /* === PRINT === */
+    /* Force browsers to keep background colors when printing. Without this,
+       Chrome/Firefox/Safari strip the emerald header (and other colored
+       pills/badges) and print only black text on white. */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
     @media print {
       body { padding: 12px; }
       @page { margin: 12mm; size: A4; }
