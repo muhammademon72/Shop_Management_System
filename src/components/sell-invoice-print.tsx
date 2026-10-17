@@ -30,6 +30,87 @@ export function printSellInvoice(sell: Sell, company: CompanyProfile | null) {
   }
 }
 
+/**
+ * Download a Sell invoice directly as a PDF file (no print preview dialog).
+ * Builds the same invoice HTML, renders it off-screen, rasterises with
+ * html2canvas, then wraps the image in jsPDF and saves it as a PDF.
+ *
+ * The "Download PDF" action in the Sales list uses this so the user gets
+ * an immediate file download instead of the browser print preview.
+ */
+export async function downloadSellPdf(sell: Sell, company: CompanyProfile | null) {
+  // Lazily import so the libraries are only loaded when actually needed —
+  // keeps initial page bundle smaller.
+  const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+    import("jspdf"),
+    import("html2canvas"),
+  ])
+
+  // 1. Build invoice HTML.
+  const html = renderInvoiceHtml(sell, company)
+
+  // 2. Render it off-screen in an iframe so styles can't leak into the page.
+  const iframe = document.createElement("iframe")
+  iframe.style.position = "fixed"
+  iframe.style.left = "-9999px"
+  iframe.style.top = "0"
+  iframe.style.width = "800px"
+  iframe.style.height = "1100px"
+  iframe.style.border = "0"
+  document.body.appendChild(iframe)
+
+  try {
+    const doc = iframe.contentDocument
+    if (!doc) throw new Error("Could not render invoice for PDF export.")
+    doc.open()
+    doc.write(html)
+    doc.close()
+
+    // 3. Wait for fonts/images to settle inside the iframe.
+    await new Promise((r) => setTimeout(r, 400))
+
+    // 4. Rasterise the invoice body.
+    const target = doc.body.firstElementChild as HTMLElement
+    const canvas = await html2canvas(target, {
+      scale: 2, // crisper PDF
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      logging: false,
+    })
+
+    // 5. Build an A4 PDF and let it span multiple pages if needed.
+    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" })
+    const pageWidthMm = pdf.internal.pageSize.getWidth()
+    const pageHeightMm = pdf.internal.pageSize.getHeight()
+    const marginMm = 10
+    const usableWidthMm = pageWidthMm - marginMm * 2
+
+    const imgWidthMm = usableWidthMm
+    const imgHeightMm = (canvas.height * imgWidthMm) / canvas.width
+
+    let heightLeftMm = imgHeightMm
+    let positionMm = marginMm
+
+    const imgData = canvas.toDataURL("image/png")
+    pdf.addImage(imgData, "PNG", marginMm, positionMm, imgWidthMm, imgHeightMm)
+    heightLeftMm -= (pageHeightMm - marginMm * 2)
+
+    while (heightLeftMm > 0) {
+      positionMm = marginMm - (imgHeightMm - heightLeftMm)
+      pdf.addPage()
+      pdf.addImage(imgData, "PNG", marginMm, positionMm, imgWidthMm, imgHeightMm)
+      heightLeftMm -= (pageHeightMm - marginMm * 2)
+    }
+
+    // 6. Trigger a real download (no preview, no print dialog).
+    const safeInvoice = (sell.invoiceNo || "invoice").replace(/[^\w-]+/g, "_")
+    pdf.save(`Invoice-${safeInvoice}.pdf`)
+  } finally {
+    // Always clean up the iframe so we don't leak DOM nodes.
+    document.body.removeChild(iframe)
+  }
+}
+
 function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
   const companyName = company?.name ?? "Your Company"
   const companyPhone = company?.phone ?? ""

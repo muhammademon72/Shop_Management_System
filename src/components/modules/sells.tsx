@@ -21,7 +21,7 @@ import { FormDialog } from "@/components/form-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { SearchableSelect } from "@/components/searchable-select"
 import { PageHeader } from "@/components/page-header"
-import { printSellInvoice } from "@/components/sell-invoice-print"
+import { printSellInvoice, downloadSellPdf } from "@/components/sell-invoice-print"
 import type { Sell, SellItem, Customer, Product, Brand, Condition, Warranty, CompanyProfile, InventoryStock } from "@/lib/types"
 import { formatCurrency, formatDate, toInputDate } from "@/lib/format"
 
@@ -337,6 +337,14 @@ export function SellsModule() {
   const handlePrint = (row: Sell) => {
     printSellInvoice(row, company ?? null)
   }
+  const handleDownloadPdf = async (row: Sell) => {
+    try {
+      await downloadSellPdf(row, company ?? null)
+      toast.success("PDF downloaded")
+    } catch (e) {
+      toast.error((e as Error).message || "PDF download failed")
+    }
+  }
 
   const handleSubmit = () => {
     if (!form.invoiceNo.trim()) {
@@ -418,7 +426,7 @@ export function SellsModule() {
           <Button size="icon" variant="ghost" onClick={() => handlePrint(row)} title="Print Invoice" className="text-emerald-600 hover:text-emerald-700">
             <Printer className="h-4 w-4" />
           </Button>
-          <Button size="icon" variant="ghost" onClick={() => handlePrint(row)} title="Download PDF" className="text-rose-600 hover:text-rose-700">
+          <Button size="icon" variant="ghost" onClick={() => handleDownloadPdf(row)} title="Download PDF" className="text-rose-600 hover:text-rose-700">
             <Download className="h-4 w-4" />
           </Button>
           <Button size="icon" variant="ghost" onClick={() => handleEdit(row)} title="Edit">
@@ -688,9 +696,17 @@ export function SellsModule() {
         footer={
           <div className="flex w-full items-center justify-between gap-2">
             <Button variant="outline" onClick={() => setViewing(null)}>Close</Button>
-            <Button onClick={() => viewing && handlePrint(viewing)} className="bg-emerald-600 text-white hover:bg-emerald-700">
-              <Printer className="mr-2 h-4 w-4" /> Print Invoice
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => viewing && handlePrint(viewing)} className="bg-emerald-600 text-white hover:bg-emerald-700">
+                <Printer className="mr-2 h-4 w-4" /> Print Invoice
+              </Button>
+              <Button
+                onClick={() => viewing && handleDownloadPdf(viewing)}
+                className="bg-rose-600 text-white hover:bg-rose-700"
+              >
+                <Download className="mr-2 h-4 w-4" /> Download PDF
+              </Button>
+            </div>
           </div>
         }
       >
