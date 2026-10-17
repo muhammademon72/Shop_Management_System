@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Pencil, Plus, Trash2, Eye, FileText, X, Loader2, Printer } from "lucide-react"
+import { Pencil, Plus, Trash2, Eye, FileText, X, Loader2, Printer, Download } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -417,6 +417,9 @@ export function SellsModule() {
           </Button>
           <Button size="icon" variant="ghost" onClick={() => handlePrint(row)} title="Print Invoice" className="text-emerald-600 hover:text-emerald-700">
             <Printer className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" onClick={() => handlePrint(row)} title="Download PDF" className="text-rose-600 hover:text-rose-700">
+            <Download className="h-4 w-4" />
           </Button>
           <Button size="icon" variant="ghost" onClick={() => handleEdit(row)} title="Edit">
             <Pencil className="h-4 w-4" />
