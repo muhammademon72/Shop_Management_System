@@ -67,15 +67,21 @@ export async function downloadSellPdf(sell: Sell, company: CompanyProfile | null
     doc.close()
 
     // 3. Wait for fonts/images to settle inside the iframe.
-    await new Promise((r) => setTimeout(r, 400))
+    await new Promise((r) => setTimeout(r, 600))
 
-    // 4. Rasterise the invoice body.
-    const target = doc.body.firstElementChild as HTMLElement
+    // 4. Rasterise the invoice. Try the .invoice container first; fall back
+    //    to body if needed. We render the visible area (windowWidth/windowHeight)
+    //    so html2canvas doesn't clip the iframe's tiny physical dimensions.
+    const target = (doc.querySelector(".invoice") as HTMLElement) ?? doc.body
     const canvas = await html2canvas(target, {
       scale: 2, // crisper PDF
       backgroundColor: "#ffffff",
       useCORS: true,
       logging: false,
+      width: 800,
+      height: target.scrollHeight,
+      windowWidth: 800,
+      windowHeight: target.scrollHeight,
     })
 
     // 5. Build an A4 PDF and let it span multiple pages if needed.
