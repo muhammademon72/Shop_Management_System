@@ -337,13 +337,9 @@ export function SellsModule() {
   const handlePrint = (row: Sell) => {
     printSellInvoice(row, company ?? null)
   }
-  const handleDownloadPdf = async (row: Sell) => {
-    try {
-      await downloadSellPdf(row, company ?? null)
-      toast.success("PDF downloaded")
-    } catch (e) {
-      toast.error((e as Error).message || "PDF download failed")
-    }
+  const handleDownloadPdf = (row: Sell) => {
+    downloadSellPdf(row, company ?? null)
+    toast.success("Opening print dialog — choose 'Save as PDF' to download")
   }
 
   const handleSubmit = () => {

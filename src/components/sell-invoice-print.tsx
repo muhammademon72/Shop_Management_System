@@ -31,90 +31,24 @@ export function printSellInvoice(sell: Sell, company: CompanyProfile | null) {
 }
 
 /**
- * Download a Sell invoice directly as a PDF file (no print preview dialog).
- * Builds the same invoice HTML, renders it off-screen, rasterises with
- * html2canvas, then wraps the image in jsPDF and saves it as a PDF.
+ * Download a Sell invoice as a PDF file.
  *
- * The "Download PDF" action in the Sales list uses this so the user gets
- * an immediate file download instead of the browser print preview.
+ * This re-uses the same print preview window as `printSellInvoice`, then
+ * relies on the browser's "Save as PDF" option in the print dialog.
+ *
+ * We deliberately avoid jsPDF + html2canvas here because:
+ *  - Both libraries together ship ~30MB+, blowing past the z.ai preview
+ *    deployment's build memory limit and causing 500 errors.
+ *  - Browsers (Chrome/Edge/Firefox/Safari) already expose a high-quality
+ *    "Save as PDF" destination in the native print dialog. Re-implementing
+ *    it client-side is a needless dependency.
+ *
+ * UX: clicking the Download button opens the print preview; the user then
+ * picks "Save as PDF" as the destination (it's the default on most
+ * browsers). Result: identical PDF output, zero heavy libraries.
  */
-export async function downloadSellPdf(sell: Sell, company: CompanyProfile | null) {
-  // Lazily import so the libraries are only loaded when actually needed —
-  // keeps initial page bundle smaller.
-  const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
-    import("jspdf"),
-    import("html2canvas"),
-  ])
-
-  // 1. Build invoice HTML.
-  const html = renderInvoiceHtml(sell, company)
-
-  // 2. Render it off-screen in an iframe so styles can't leak into the page.
-  const iframe = document.createElement("iframe")
-  iframe.style.position = "fixed"
-  iframe.style.left = "-9999px"
-  iframe.style.top = "0"
-  iframe.style.width = "800px"
-  iframe.style.height = "1100px"
-  iframe.style.border = "0"
-  document.body.appendChild(iframe)
-
-  try {
-    const doc = iframe.contentDocument
-    if (!doc) throw new Error("Could not render invoice for PDF export.")
-    doc.open()
-    doc.write(html)
-    doc.close()
-
-    // 3. Wait for fonts/images to settle inside the iframe.
-    await new Promise((r) => setTimeout(r, 600))
-
-    // 4. Rasterise the invoice. Try the .invoice container first; fall back
-    //    to body if needed. We render the visible area (windowWidth/windowHeight)
-    //    so html2canvas doesn't clip the iframe's tiny physical dimensions.
-    const target = (doc.querySelector(".invoice") as HTMLElement) ?? doc.body
-    const canvas = await html2canvas(target, {
-      scale: 2, // crisper PDF
-      backgroundColor: "#ffffff",
-      useCORS: true,
-      logging: false,
-      width: 800,
-      height: target.scrollHeight,
-      windowWidth: 800,
-      windowHeight: target.scrollHeight,
-    })
-
-    // 5. Build an A4 PDF and let it span multiple pages if needed.
-    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" })
-    const pageWidthMm = pdf.internal.pageSize.getWidth()
-    const pageHeightMm = pdf.internal.pageSize.getHeight()
-    const marginMm = 10
-    const usableWidthMm = pageWidthMm - marginMm * 2
-
-    const imgWidthMm = usableWidthMm
-    const imgHeightMm = (canvas.height * imgWidthMm) / canvas.width
-
-    let heightLeftMm = imgHeightMm
-    let positionMm = marginMm
-
-    const imgData = canvas.toDataURL("image/png")
-    pdf.addImage(imgData, "PNG", marginMm, positionMm, imgWidthMm, imgHeightMm)
-    heightLeftMm -= (pageHeightMm - marginMm * 2)
-
-    while (heightLeftMm > 0) {
-      positionMm = marginMm - (imgHeightMm - heightLeftMm)
-      pdf.addPage()
-      pdf.addImage(imgData, "PNG", marginMm, positionMm, imgWidthMm, imgHeightMm)
-      heightLeftMm -= (pageHeightMm - marginMm * 2)
-    }
-
-    // 6. Trigger a real download (no preview, no print dialog).
-    const safeInvoice = (sell.invoiceNo || "invoice").replace(/[^\w-]+/g, "_")
-    pdf.save(`Invoice-${safeInvoice}.pdf`)
-  } finally {
-    // Always clean up the iframe so we don't leak DOM nodes.
-    document.body.removeChild(iframe)
-  }
+export function downloadSellPdf(sell: Sell, company: CompanyProfile | null) {
+  printSellInvoice(sell, company)
 }
 
 function renderInvoiceHtml(sell: Sell, company: CompanyProfile | null): string {
