@@ -16,8 +16,8 @@ import { createClient, type Client } from '@libsql/client'
  * use this client (libSQL client supports file: URLs too).
  */
 
-const FALLBACK_URL = 'libsql://database-cyclamen-ferry-vercel-icfg-aduzcyxzagywfkds7rsn5mkv.aws-us-east-1.turso.io'
-const FALLBACK_TOKEN = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTIwODUwNTcsImlkIjoiMDFhMTQwOTctZGQwMS03ODQ0LWIzZDQtMGZiYWFiMjlmZjdmIiwia2lkIjoiWW1aV2g0YnFQcDV5dHVXODNsbkNtWm1HX1RyN0hEbkpyRzZQUEgxNkVBcyIsInJpZCI6IjM1MTZlNTY1LWYyNTctNDBhZC05OTRkLWU4MDUzM2I1M2UxOCJ9.xpdXpnVicqbWoRfSDsKD3qZaqYgZWGDlIRW37G0_RRxVjbi_YLaiSdna6b7ChG98Q-QCVi_ohjg_W1WSBiJQAA'
+const FALLBACK_URL = 'libsql://shopmanagementsystem-muhammademon72.aws-ap-south-1.turso.io'
+const FALLBACK_TOKEN = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTI5MzA5ODAsImlkIjoiMDFhMTcyZTYtYWUwMS03OGQ0LTk4NWUtM2YzOTNmNDI5MDNkIiwia2lkIjoiUHV4RTlyWXVaVmtqaVpMZlFRVUlTa0JlaU56RXNmdG5Xdmg5QTBib3Y5dyIsInJpZCI6ImExNTE4NmNjLWY0NWEtNDBmZC05Njk3LTg3YjcwOWNlMGY5ZCJ9.y8Werjh9m0yKD0DJYYM8K03ORfSA6N1jmDiMD9J3f7T_4A8__nlXJYxQAW_ThtUyH8OQnjwxGFOn-8mrg9khDA'
 
 let url = process.env.DATABASE_URL ?? ''
 let authToken = process.env.TURSO_AUTH_TOKEN ?? ''
