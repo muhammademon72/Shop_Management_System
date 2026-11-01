@@ -1,19 +1,32 @@
 import { createClient, type Client } from '@libsql/client'
 
 /**
- * Direct @libsql/client connection to Turso.
- * 
- * We bypass Prisma entirely because Prisma's Rust query engine can't
- * read environment variables on Vercel's serverless functions, causing
- * "URL_INVALID: The URL 'undefined'" errors at runtime.
- * 
- * This module exports a `db` object with methods that mimic the most
- * commonly used Prisma operations (findMany, create, update, delete)
- * using raw SQL via @libsql/client. This way, the API routes don't
- * need to change much — they just call `db.category.findMany()` etc.
- * 
- * For local development, if DATABASE_URL is a file: path, we still
- * use this client (libSQL client supports file: URLs too).
+ * ============================================================================
+ *  DATA PERSISTENCE — ALL DATA SAVED TO TURSO CLOUD DATABASE
+ * ============================================================================
+ *  Every record you create through this software (Sales, Purchases,
+ *  Quotations, Customers, Suppliers, Products, Inventory, Brands,
+ *  Categories, Conditions, Warranties, Users, Company Profile, etc.)
+ *  is persisted to a Turso (libSQL) cloud database via this module.
+ *
+ *  Why this matters:
+ *  - Zero data loss: every INSERT/UPDATE/DELETE goes directly to Turso.
+ *  - Multi-device access: log in from any browser and see the same data.
+ *  - Cloud backup: Turso keeps your data replicated and backed up.
+ *
+ *  Why we bypass Prisma:
+ *  - Prisma's Rust query engine can't read env vars on Vercel/serverless,
+ *    causing "URL_INVALID: The URL 'undefined'" errors at runtime.
+ *  - We use @libsql/client directly with raw SQL — works everywhere.
+ *
+ *  This module exports a `db` object with methods that mimic the most
+ *  commonly used Prisma operations (findMany, create, update, delete).
+ *  API routes call `db.sells.findMany()` etc., and the data flows
+ *  straight to/from Turso.
+ *
+ *  For local development, if DATABASE_URL is a file: path, we still
+ *  use this client (libSQL client supports file: URLs too).
+ * ============================================================================
  */
 
 const FALLBACK_URL = 'libsql://shopmanagementsystem-muhammademon72.aws-ap-south-1.turso.io'
